@@ -1,0 +1,68 @@
+{
+  "meta" : {
+    "name" : "some form name",
+    "id": "form id",
+    "uuid": "",
+    "created_at": ""
+  },
+  "fields": [{
+    "name": {
+      "label": "Your Name",
+      "name": "name",
+      "as": "input",
+      "val": " "
+    },
+    "email": {
+      "label": "Your Email",
+      "name": "email",
+      "as": "input",
+      "val": " "
+    },
+    "password": {
+      "label": "Your Password",
+      "name": "password",
+      "as": "password",
+      "val": ""
+    }},
+    {
+      "name2": {
+        "label": "Your Name 2",
+        "name": "name2",
+        "as": "input",
+        "val": " "
+      },
+      "email2": {
+        "label": "Your Email 2",
+        "name": "email2",
+        "as": "input",
+        "val": " "
+      },
+      "password2": {
+        "label": "Your Password 2",
+        "name": "password2",
+        "as": "password",
+        "val": ""
+      }},
+      {
+        "name3": {
+          "label": "Your Name 3",
+          "name": "name3",
+          "as": "input",
+          "val": " "
+        },
+        "email3": {
+          "label": "Your Email 3",
+          "name": "email3",
+          "as": "input",
+          "val": " "
+        },
+        "password3": {
+          "label": "Your Password 3",
+          "name": "password3",
+          "as": "password",
+          "val": ""
+        }}
+  ]
+  
+}
+
