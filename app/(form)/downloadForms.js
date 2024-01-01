@@ -1,12 +1,12 @@
 
 
 import { View, Text, StyleSheet, ActivityIndicator, Pressable, SafeAreaView,  Dimensions } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useState } from 'react'
 import axios from 'axios';
 
 import * as FileSystem from 'expo-file-system';
 
-import { Link, router } from 'expo-router'
+import { Link, router, useNavigation } from 'expo-router'
 
 import { Ionicons, AntDesign, Entypo } from '@expo/vector-icons';
 import { FAB, CheckBox } from '@rneui/themed';
@@ -36,6 +36,7 @@ const downloadForms = () => {
   const [data, setData] = useState([])
   const [isLoading, setLoading] = useState(false)
 
+  const navigation = useNavigation();
 
     language = 'en'
 
@@ -152,6 +153,14 @@ const downloadForms = () => {
       _getFilesInDirectory();
     }, []);
 
+
+    useLayoutEffect(() => {
+      navigation.setOptions({
+        title: 'Download Forms',
+      });
+    }, [navigation]);
+
+
     const handleRefresh = () => {
       setLoading(true); // Set refreshing to true to show the loading indicator
       _getFilesInDirectory();
@@ -228,9 +237,9 @@ const downloadForms = () => {
               {filesChosen ? (
               <FAB
                 size="small"
-                title="Get"
+                title=""
                 color={COLORS.fontColor}
-                icon={<Ionicons name="ios-download-outline" size={24} color="white" />}
+                icon={<Ionicons name="ios-download-outline" size={22} color="white" />}
                 placement='right'
                 onPress={() => {
                   console.log('do download')

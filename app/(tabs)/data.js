@@ -1,15 +1,17 @@
 
 
-import { View, Text, StyleSheet, ActivityIndicator, Pressable, SafeAreaView,  Dimensions } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import { View, Text, StyleSheet, ActivityIndicator, Pressable, SafeAreaView,  Dimensions, Touchable, Button } from 'react-native'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import * as FileSystem from 'expo-file-system';
 
 import { fetchDataAndStore, retrieveStoredData } from '../../services/updates'
 import { Link, router } from 'expo-router'
 
-import { Ionicons, AntDesign } from '@expo/vector-icons';
+import { Ionicons, AntDesign, MaterialIcons,MaterialCommunityIcons, Entypo} from '@expo/vector-icons';
 import { FAB } from '@rneui/themed';
+import BottomSheet from '@gorhom/bottom-sheet';
+
 
 import Animated, {
   Extrapolation,
@@ -25,18 +27,26 @@ const HEADER_SCROLL_DISTANCE = HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT;
 
 import {COLORS} from "../../constants/colors"
 
-const path = '../../assets/forms/defn/'
-
-import { useStoreState } from 'pullstate';
-import { state } from '../../stores/state';
-import { Asset } from 'expo-asset';
+import { PATH } from '../../constants/global';
 
 
 const data = () => {
 
-    const [data, setData] = useState([])
+    const [data, setData] = useState({})
     const [isLoading, setLoading] = useState(false)
     const [isScrolledToBottom, setIsScrolledToBottom] = useState(false);
+
+    // Bottom Sheet
+    //const bottomSheetRef = useRef();
+    const bottomSheetRef = useRef(null);
+    const finalized_bottomSheetRef = useRef(null);
+    const snapPoints = useMemo(() => ['50%', '75%'], []);
+    const handleSheetChanges = useCallback((index) => {
+      console.log('handleSheetChanges', index);
+    }, []);
+    const handleBSOpenPress = () => {
+      bottomSheetRef.current?.snapToIndex(0)
+    }
 
 
     language = 'en'
@@ -44,20 +54,27 @@ const data = () => {
     _getFilesInDirectory = async() => {
       
       let files = [];
-      let path = FileSystem.documentDirectory + 'FORMS/DATA/'
-      let dir = await FileSystem.readDirectoryAsync(path);
+      let dir = await FileSystem.readDirectoryAsync(PATH.form_data);
 
-      
       dir.forEach((val) => {
-
         // read json file
-        
-
-        let tmp = {
-          "file_name": val,
-          "created_at": ""
-        }
-        files.push(tmp);
+        FileSystem.readAsStringAsync(PATH.form_data+val).then(
+          (xForm) =>{
+            let tForm = JSON.parse(xForm)
+            console.log(tForm.meta.name)
+            let tmp = {
+              "file_name": val,
+              "form_name": tForm.meta.name,
+              "formID": tForm.meta.id,
+              "version":  tForm.meta.version,
+              "status":  tForm.meta.status,
+              "uuid":  tForm.meta.uuid,
+            }
+            files.push(tmp);
+          }
+        ).catch(
+          (e) => {console.log(e)}
+        )  
       
       });
       console.log(files)
@@ -68,23 +85,46 @@ const data = () => {
     }
 
     const Item = ({item}) => (
-      <Link href={{
-          pathname: "../dynamicForm",
-          params: {
-            id: item.file_name,
-          },
-        }} asChild>
-        <Pressable>
+        <Pressable onPress={getLinkAction(item)}>
           <View style={styles.item}>
             <View style={{padding: 10,}}>
-              <Text style={{fontSize: 14,color: "black"}}>{item.file_name}</Text>
-              <Text style={{fontSize: 12, color: "#ddd",}}>Form Name</Text>
-              <Text style={{fontSize: 12, color: "#ddd",}}>created on</Text>
+              <Text style={{fontSize: 18,color: "black"}}>{item.formID}</Text>
+              <Text style={{fontSize: 16, color: "#444",}}>{item.form_name}</Text>
+              <View style={{flexDirection: "row", justifyContent: "space-between"}}>
+                <Text style={{fontSize: 12, color: getTextColor(item.status),}}>{item.status.toUpperCase()}</Text>
+                <Text style={{fontSize: 14, color: "#aaa",}}> created on</Text>
+              </View>
             </View>
           </View>
         </Pressable>
-      </Link>
     );
+
+    const getTextColor = (status) => {
+      if(status == "sent") return COLORS.fontColor;
+      else if(status == "finalized") return "#346e43";
+      else return "#94794a"
+    }
+
+    const getLinkAction = (item) => {
+      if(item.status == "sent"){
+        return () => router.push({
+          pathname: "../(form)/manageForm",
+          params: {
+            form_fn: item.file_name,
+          }
+        })
+      }else if(item.status == "finalized"){
+        return () => finalized_bottomSheetRef.current?.snapToIndex(0)
+      }else{
+        return () => router.push({
+          pathname: "../(form)/newForm",
+          params: {
+            form_fn: item.file_name,
+            new_form: "0",
+          }
+        })
+      }
+    }
 
     useEffect(() => {
       _getFilesInDirectory();
@@ -142,7 +182,10 @@ const data = () => {
                 }}
               >
                 <Animated.Text style={[styles.title, titleBlockStyle]}> My Data </Animated.Text>
-                <Ionicons name="search-outline" size={24} color={COLORS.fontColor} />
+                <View style={{flexDirection: "row"}}>
+                  <Ionicons name="search-outline" size={24} color={COLORS.fontColor} />
+                  <MaterialCommunityIcons name="dots-vertical" size={23} color={COLORS.fontColor} onPress={() => handleBSOpenPress()} />
+                </View>
 
               </View>
               
@@ -161,20 +204,96 @@ const data = () => {
                 refreshing={isLoading}
                 
               />
-              <FAB
-                size="small"
-                title="Report"
-                color={COLORS.fontColor}
-                icon={{
-                  name: "edit",
-                  color: "white",
-                }}
-                placement='right'
-                onPress={() => {
-                  console.log('clicked')
-                  router.push('../(form)/listForms')
-                }}
-              />
+
+              <BottomSheet
+                ref={bottomSheetRef}
+                index={-1}
+                snapPoints={snapPoints}
+                onChange={handleSheetChanges}
+                backgroundStyle={{backgroundColor: "#ddd"}}
+                enablePanDownToClose={true}
+              >
+                <View style={styles.bs_wrp}>
+
+                  <Link href="../(form)/listForms" style={styles.bs_item_wrp} asChild>
+                    <Pressable> 
+                      <View style={{flexDirection: "row"}}>
+                        <MaterialCommunityIcons name="file-document-edit-outline" size={26} color={COLORS.fontColor} />
+                        <Text style={styles.bs_item_element}>Fill Blank Form</Text>
+                      </View>
+                    </Pressable>
+                  </Link>
+
+                  <Link href="../(form)/listForms" style={styles.bs_item_wrp} asChild>
+                    <Pressable> 
+                      <View style={{flexDirection: "row"}}>
+                        <MaterialCommunityIcons name="file-send-outline" size={26} color={COLORS.fontColor} />
+                        <Text style={styles.bs_item_element}>Send Finalized Forms</Text>
+                      </View>
+                    </Pressable>
+                  </Link>
+
+                  <Link href="../(form)/listForms" style={styles.bs_item_wrp} asChild>
+                    <Pressable> 
+                      <View style={{flexDirection: "row"}}>
+                        <MaterialCommunityIcons name="file-remove-outline" size={26} color={COLORS.fontColor} />
+                        <Text style={styles.bs_item_element}>Delete Empty Form</Text>
+                      </View>
+                    </Pressable>
+                  </Link>
+
+                  <Link href="../(form)/downloadForms" style={styles.bs_item_wrp}  asChild>
+                    <Pressable>
+                      <View style={{flexDirection: "row"}}>
+                        <MaterialCommunityIcons name="file-download-outline" size={26} color={COLORS.fontColor} />
+                        <Text style={styles.bs_item_element}>Download Empty Form</Text>
+                      </View>
+                    </Pressable>
+                  </Link>
+
+                  <Pressable onPress={() => bottomSheetRef.current?.close() } style={styles.bs_item_wrp} >
+                    <View style={{flexDirection: "row"}}>
+                      <MaterialCommunityIcons name="close-box-outline" size={26} color={COLORS.fontColor} />
+                      <Text style={[styles.bs_item_element, styles.bs_item_cancel]}>CLOSE</Text>
+                    </View>
+                  </Pressable>
+
+
+                </View>
+              </BottomSheet>
+
+
+              <BottomSheet
+                ref={finalized_bottomSheetRef}
+                index={-1}
+                snapPoints={snapPoints}
+                backgroundStyle={{backgroundColor: "#ddd"}}
+                enablePanDownToClose={true}
+              >
+                <View style={styles.bs_wrp}>
+
+                  <Text style={{fontSize: 24, padding: 15, textAlign: "center"}}>Are you sure you want to submit the form to the server</Text>
+                  <Pressable onPress={() => alert('sending forms now') } style={styles.bs_item_wrp} >
+                    <View style={{flexDirection: "row"}}>
+                      <MaterialCommunityIcons name="close-box-outline" size={26} color={COLORS.fontColor} />
+                      <Text style={[styles.bs_item_element, styles.bs_item_cancel]}>Yes</Text>
+                    </View>
+                  </Pressable>
+                  <Pressable onPress={() => finalized_bottomSheetRef.current?.close() } style={styles.bs_item_wrp} >
+                    <View style={{flexDirection: "row"}}>
+                      <MaterialCommunityIcons name="close-box-outline" size={26} color={COLORS.fontColor} />
+                      <Text style={[styles.bs_item_element, styles.bs_item_cancel]}>No</Text>
+                    </View>
+                  </Pressable>
+
+                </View>
+
+
+              </BottomSheet>
+
+
+
+
           </View>
           )
         }
@@ -229,6 +348,33 @@ const styles = StyleSheet.create({
     fontSize: 18,
     paddingTop: 3,
   },
+
+  bs_item_wrp:{
+    paddingVertical: 11,
+    paddingHorizontal:15,
+    borderBottomWidth: 1,
+    borderColor: "#ccc",
+  },
+
+  bs_item_element: {
+    paddingHorizontal:15,
+    color: "#333",
+    fontSize: 18,
+  },
+
+  bs_item_cancel: {
+    color: COLORS.fontColor,
+  },
+
+  bs_wrp:{
+    flex: 1, 
+    borderTopLeftRadius: 20, 
+    borderTopRightRadius: 20, 
+    paddingTop:20,
+  },
+
+
+
 
 
 });

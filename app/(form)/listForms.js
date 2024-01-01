@@ -1,11 +1,11 @@
 
 
 import { View, Text, StyleSheet, ActivityIndicator, Pressable, SafeAreaView,  Dimensions } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useState } from 'react'
 
 import * as FileSystem from 'expo-file-system';
 
-import { Link, router } from 'expo-router'
+import { Link, router, useNavigation } from 'expo-router'
 
 import { Ionicons, AntDesign, Entypo } from '@expo/vector-icons';
 import { FAB } from '@rneui/themed';
@@ -30,6 +30,7 @@ const listForms = () => {
 
     const [data, setData] = useState([])
     const [isLoading, setLoading] = useState(false)
+    const navigation = useNavigation();
 
 
     language = 'en'
@@ -70,6 +71,7 @@ const listForms = () => {
           pathname: "../newForm",
           params: {
             form_fn: item.file_name,
+            new_form: "1",
           },
         }} asChild>
         <Pressable>
@@ -90,6 +92,12 @@ const listForms = () => {
     useEffect(() => {
       _getFilesInDirectory();
     }, []);
+
+    useLayoutEffect(() => {
+      navigation.setOptions({
+        title: 'List Forms',
+      });
+    }, [navigation]);
 
     const handleRefresh = () => {
       setLoading(true); // Set refreshing to true to show the loading indicator
@@ -162,20 +170,6 @@ const listForms = () => {
                 onRefresh={handleRefresh}
                 refreshing={isLoading}
                 
-              />
-              <FAB
-                size="small"
-                title=""
-                color={COLORS.fontColor}
-                icon={{
-                  name: "add",
-                  color: "white",
-                }}
-                placement='right'
-                onPress={() => {
-                  console.log('clicked')
-                  router.push('./downloadForms')
-                }}
               />
           </View>
           )

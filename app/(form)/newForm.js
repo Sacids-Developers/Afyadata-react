@@ -1,6 +1,6 @@
 
 import { Text, View, TextInput, Button } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useState } from 'react'
 import { useForm } from "react-hook-form";
 import FormFields from '../../components/FormFields';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -16,13 +16,13 @@ import { PATH } from '../../constants/global';
 
 const newForm = () => {
 
-  const myForm = require('../../assets/forms/defn/test_1.json');
-  const {form_fn} = useLocalSearchParams()
+  const {form_fn, new_form} = useLocalSearchParams()
 
   const [mForm, setForm] = useState({fields: [{}]});
   const [page, setPage]   = useState(0)
   const [totalPages, setTotalPages] = useState(0)
 
+  const navigation = useNavigation();
   
   function update(index, newValue) {
     const nForm = {...mForm} // shallow copy
@@ -38,7 +38,7 @@ const newForm = () => {
   const saveFormToFile = async (uid, filled_form) => {
     
     try {
-      await FileSystem.writeAsStringAsync(PATH.file_data, filled_form);
+      await FileSystem.writeAsStringAsync(PATH.form_data+uid, filled_form);
       console.log('String saved as file successfully.');
     } catch (error) {
       console.error('Error saving string as file:', error);
@@ -46,18 +46,24 @@ const newForm = () => {
 
   };
 
-  const showSubmit = (event) => {
-    event.preventDefault();
+  const submitForm = (status) => {
+    //event.preventDefault();
     //console.log(JSON.stringify(mForm))
 
     uuid =  Crypto.randomUUID();
+    console.log(uuid)
     
     // update meta section of file
     const nForm = {...mForm} // shallow copy
-    nForm["meta"]["uuid"] = uuid; // update index
+
+    // check if uuid is set, if so, means its a draft form
+    nForm["meta"]["uuid"] = uid.length > 5 ? uid : uuid;
+
+    //nForm["meta"]["uuid"] = uuid; // update index
+    nForm["meta"]["status"] = status; // update index
     setForm(nForm); // set new json
 
-    //console.log(mForm)
+    console.log(nForm)
     // save to file
     saveFormToFile(uuid,JSON.stringify(nForm))
 
@@ -83,7 +89,7 @@ const newForm = () => {
     }
 
     return (
-      <View style={{flexDirection:"row",justifyContent:"space-between"}}>
+      <View style={{flexDirection:"row",justifyContent:"space-between",borderTopColor: "#ccc", borderWidth: 1,}}>
         {prev}
         {next}
       </View>
@@ -91,7 +97,11 @@ const newForm = () => {
   }
 
   useEffect(() => {
-    FileSystem.readAsStringAsync(PATH.form_defn+form_fn).then(
+    
+    const file_path = ( new_form === "1" ? PATH.form_defn+form_fn : PATH.form_data+form_fn );
+    console.log(file_path)
+    
+    FileSystem.readAsStringAsync(file_path).then(
       (xForm) =>{
         let tForm = JSON.parse(xForm)
         setForm(tForm)
@@ -102,28 +112,34 @@ const newForm = () => {
     )
   }, []);
 
+  
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: 'Fill New Forms',
+    });
+  }, [navigation]);
+
   return (
-      <ScrollView style={{flex: 1, padding: 10,}}>
+    <>
+      { 
+        page < totalPages ? ( 
+          <View style={{flex: 1}}>
+            <ScrollView style={{flex: 1, padding: 10, backgroundColor: "white", }}>
+              {myFormData}
+            </ScrollView>
+            <View style={{backgroundColor: "white"}}>
+              {pageLinks()}
+            </View>
+          </View>
+        ):(
+          <View>
+            <Button onPress={() => submitForm('draft')} title="Save Draft" color="#841584" />
+            <Button onPress={() => submitForm('Finalized')} title="Finalize" color="#841584" />
+          </View>
 
-        { 
-          page < totalPages ? ( 
-              <View style={{flex: 1}}>
-                <View style={{flex: 1}}>
-                  {myFormData}
-                </View>
-                {pageLinks()}
-              </View>
-          ):(
-
-            <Button
-              onPress={showSubmit}
-              title="Submit"
-              color="#841584"
-            />
-
-          )
-        }
-      </ScrollView>
+        )
+      }
+    </>
   )
 }
 

@@ -1,4 +1,5 @@
 import { Text, View, input, TextInput, StyleSheet} from 'react-native'
+import { Input } from '@rneui/base';
 
 
 export default function FormFields(props, index, update) {
