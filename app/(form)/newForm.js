@@ -4,7 +4,7 @@ import React, { useEffect, useLayoutEffect, useState } from 'react'
 import { useForm } from "react-hook-form";
 import FormFields from '../../components/FormFields';
 import { ScrollView } from 'react-native-gesture-handler';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import * as Crypto from 'expo-crypto';
 import * as FileSystem from 'expo-file-system';
 
@@ -57,6 +57,7 @@ const newForm = () => {
     const nForm = {...mForm} // shallow copy
 
     // check if uuid is set, if so, means its a draft form
+    uid = nForm["meta"]["uuid"]
     nForm["meta"]["uuid"] = uid.length > 5 ? uid : uuid;
 
     //nForm["meta"]["uuid"] = uuid; // update index
@@ -66,6 +67,9 @@ const newForm = () => {
     console.log(nForm)
     // save to file
     saveFormToFile(uuid,JSON.stringify(nForm))
+    alert('success')
+    // wait 1 second
+    router.back()
 
   }
 

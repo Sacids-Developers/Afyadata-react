@@ -100,20 +100,20 @@ const data = () => {
     );
 
     const getTextColor = (status) => {
-      if(status == "sent") return COLORS.fontColor;
-      else if(status == "finalized") return "#346e43";
+      if(status.toUpperCase == "SENT") return COLORS.fontColor;
+      else if(status.toUpperCase() == "FINALIZED") return "#346e43";
       else return "#94794a"
     }
 
     const getLinkAction = (item) => {
-      if(item.status == "sent"){
+      if(item.status.toUpperCase() == "SENT"){
         return () => router.push({
           pathname: "../(form)/manageForm",
           params: {
             form_fn: item.file_name,
           }
         })
-      }else if(item.status == "finalized"){
+      }else if(item.status.toUpperCase() == "FINALIZED"){
         return () => finalized_bottomSheetRef.current?.snapToIndex(0)
       }else{
         return () => router.push({
