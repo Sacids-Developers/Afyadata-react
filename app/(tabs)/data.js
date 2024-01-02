@@ -1,6 +1,6 @@
 
 
-import { View, Text, StyleSheet, ActivityIndicator, Pressable, SafeAreaView,  Dimensions, Touchable, Button } from 'react-native'
+import { View, Text, StyleSheet, ActivityIndicator, Pressable, SafeAreaView,  Dimensions, Touchable, Button, Alert } from 'react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import * as FileSystem from 'expo-file-system';
@@ -49,6 +49,19 @@ const data = () => {
     }
 
 
+    // confirm 
+    const confirmSubmission = () =>
+      Alert.alert('From Submission', 'Are you sure you want to submit the form to the server', [
+        {
+          text: 'Cancel',
+          onPress: () => console.log('Cancel Pressed'),
+          style: 'cancel',
+        },
+        { 
+          text: 'OK', 
+          onPress: () => console.log('Sending Form to Server')},
+      ]);
+
     language = 'en'
 
     _getFilesInDirectory = async() => {
@@ -87,12 +100,12 @@ const data = () => {
     const Item = ({item}) => (
         <Pressable onPress={getLinkAction(item)}>
           <View style={styles.item}>
-            <View style={{padding: 10,}}>
-              <Text style={{fontSize: 18,color: "black"}}>{item.formID}</Text>
-              <Text style={{fontSize: 16, color: "#444",}}>{item.form_name}</Text>
+            <View style={{padding: 8,}}>
+              <Text style={{fontSize: 16,color: "black"}}>{item.formID}</Text>
+              <Text style={{fontSize: 14, color: "#444",}}>{item.form_name}</Text>
               <View style={{flexDirection: "row", justifyContent: "space-between"}}>
-                <Text style={{fontSize: 12, color: getTextColor(item.status),}}>{item.status.toUpperCase()}</Text>
-                <Text style={{fontSize: 14, color: "#aaa",}}> created on</Text>
+                <Text style={{fontSize: 13, color: getTextColor(item.status),}}>{item.status.toUpperCase()}</Text>
+                <Text style={{fontSize: 13, color: "#aaa",}}> created on</Text>
               </View>
             </View>
           </View>
@@ -114,7 +127,7 @@ const data = () => {
           }
         })
       }else if(item.status.toUpperCase() == "FINALIZED"){
-        return () => finalized_bottomSheetRef.current?.snapToIndex(0)
+        return () => confirmSubmission()
       }else{
         return () => router.push({
           pathname: "../(form)/newForm",
@@ -261,39 +274,6 @@ const data = () => {
 
                 </View>
               </BottomSheet>
-
-
-              <BottomSheet
-                ref={finalized_bottomSheetRef}
-                index={-1}
-                snapPoints={snapPoints}
-                backgroundStyle={{backgroundColor: "#ddd"}}
-                enablePanDownToClose={true}
-              >
-                <View style={styles.bs_wrp}>
-
-                  <Text style={{fontSize: 24, padding: 15, textAlign: "center"}}>Are you sure you want to submit the form to the server</Text>
-                  <Pressable onPress={() => alert('sending forms now') } style={styles.bs_item_wrp} >
-                    <View style={{flexDirection: "row"}}>
-                      <MaterialCommunityIcons name="close-box-outline" size={26} color={COLORS.fontColor} />
-                      <Text style={[styles.bs_item_element, styles.bs_item_cancel]}>Yes</Text>
-                    </View>
-                  </Pressable>
-                  <Pressable onPress={() => finalized_bottomSheetRef.current?.close() } style={styles.bs_item_wrp} >
-                    <View style={{flexDirection: "row"}}>
-                      <MaterialCommunityIcons name="close-box-outline" size={26} color={COLORS.fontColor} />
-                      <Text style={[styles.bs_item_element, styles.bs_item_cancel]}>No</Text>
-                    </View>
-                  </Pressable>
-
-                </View>
-
-
-              </BottomSheet>
-
-
-
-
           </View>
           )
         }
@@ -309,7 +289,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   item: {
-    paddingVertical: 3,
+    paddingVertical: 0,
     paddingHorizontal: 15,
     borderBottomWidth: 1,
     borderColor: COLORS.backgroundColor,
