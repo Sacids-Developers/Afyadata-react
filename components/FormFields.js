@@ -7,15 +7,57 @@ import { Ionicons, AntDesign, MaterialIcons,MaterialCommunityIcons, Entypo} from
 
 export default function FormFields(props, index, update) {
 
-    console.log('in form fields')
-    console.log(props)
-    console.log(index)
+    if(props.type === 'group'){
 
-    if(props.type === 'integer'){
+        // top label of the group 
+        return (
+            <View style={styles.item_wrp} key={index}>
+                <Text style={styles.group_label }>{props.label}</Text>
+            </View>
+        )
+    }
+    else if(props.type === 'integer'){
         return (
             <View style={styles.item_wrp} key={index}>
                 <Text style={styles.item_label }>{props.label}</Text>
-                <TextInput style={styles.input} placeholder={props.label} name={props.name} value={props.val} onChangeText={(e) => { update(index,e);}}/>
+                <Text style={styles.item_hint }>{props.hint}</Text>
+                <TextInput
+                    inputMode="numeric"
+                    style={styles.input} 
+                    //placeholder={props.label} 
+                    name={props.name} 
+                    value={props.val} 
+                    onChangeText={(e) => { update(index,e);}}
+                />
+            </View>
+        )
+    }
+
+    else if(props.type === 'note'){
+
+        // top label of the group 
+        return (
+            <View style={styles.item_wrp} key={index}>
+                <Text style={styles.note_label }>{props.label}</Text>
+            </View>
+        )
+    }
+
+
+    else if(props.type === 'text'){
+        return (
+            <View style={styles.item_wrp} key={index}>
+                <Text style={styles.item_label }>{props.label}</Text>
+                <Text style={styles.item_hint }>{props.hint}</Text>
+                <TextInput 
+                    multiline={true}
+                    numberOfLines={4}
+                    textAlignVertical={top}
+                    style={styles.input} 
+                    placeholder={props.label} 
+                    name={props.name} 
+                    value={props.val} 
+                    onChangeText={(e) => { update(index,e);}}/>
             </View>
         )
     }
@@ -24,7 +66,13 @@ export default function FormFields(props, index, update) {
         return (
             <View style={styles.item_wrp} key={index}>
                 <Text style={styles.item_label }>{props.label}</Text>
-                <TextInput style={styles.input} placeholder={props.label} value={props.val} onChange={(e) => {update(index,e.nativeEvent.text)}}/>
+                <Text style={styles.item_hint }>{props.hint}</Text>
+                <TextInput 
+                    secureTextEntry={true}
+                    style={styles.input} 
+                    placeholder={props.label} 
+                    value={props.val} 
+                    onChange={(e) => {update(index,e.nativeEvent.text)}}/>
             </View>
         )
     }
@@ -33,7 +81,13 @@ export default function FormFields(props, index, update) {
         return (
             <View style={styles.item_wrp} key={index}>
                 <Text style={styles.item_label }>{props.label}</Text>
-                <TextInput style={styles.input} placeholder={props.label} value={props.val} onChangeText={text => update(index,text) }  />
+                <Text style={styles.item_hint }>{props.hint}</Text>
+                <TextInput
+                    inputMode="email" 
+                    style={styles.input} 
+                    placeholder={props.label} 
+                    value={props.val} 
+                    onChangeText={text => update(index,text) }  />
             </View>
         )
     }
@@ -60,6 +114,7 @@ export default function FormFields(props, index, update) {
         return (
             <View style={styles.item_wrp} key={index}>
                 <Text style={styles.item_label }>{props.label}</Text>
+                <Text style={styles.item_hint }>{props.hint}</Text>
                 <Dropdown
                     style={styles.dropdown}
                     placeholderStyle={styles.placeholderStyle}
@@ -93,6 +148,7 @@ export default function FormFields(props, index, update) {
         return (
             <View style={styles.item_wrp} key={index}>
               <Text style={styles.item_label }>{props.label}</Text>
+              <Text style={styles.item_hint }>{props.hint}</Text>
               <MultiSelect
                 style={styles.dropdown}
                 placeholderStyle={styles.placeholderStyle}
@@ -119,6 +175,7 @@ export default function FormFields(props, index, update) {
         return (
             <View style={styles.item_wrp} key={index}>
                 <Text style={styles.item_label }>{props.label}</Text>
+                <Text style={styles.item_label }>{props.hint}</Text>
                 <TextInput style={styles.input} placeholder={props.label} name={props.name} value={props.val} onChangeText={(e) => { update(index,e);}}/>
             </View>
         )
@@ -139,12 +196,28 @@ const styles = StyleSheet.create({
     },
     item_label:{
         fontSize: 18,
-        paddingBottom: 3,
     },
+    item_hint:{
+        fontSize: 15,
+        fontStyle: "italic",
+    },
+
+    group_label:{
+        fontSize: 18,
+        color: "maroon",
+    },
+
+
+    note_label:{
+        fontSize: 18,
+        fontStyle: "italic",
+        color: "#444",
+    },
+
     item_input: {
         fontSize: 18,
         borderWidth: 1,
-        borderColor: "#CCC",
+        borderColor: "gray",
         paddingVertical: 3,
         
     },
@@ -152,16 +225,19 @@ const styles = StyleSheet.create({
         height: 40,
         margin: 12,
         borderWidth: 1,
+        borderColor: "gray",
         padding: 10,
     },
 
 
 
     dropdown: {
-        height: 50,
+        height: 40,
         backgroundColor: 'transparent',
-        borderBottomColor: 'gray',
-        borderBottomWidth: 0.5,
+        borderColor: 'gray',
+        margin: 12,
+        padding:2,
+        borderWidth: 1,
       },
       placeholderStyle: {
         fontSize: 16,

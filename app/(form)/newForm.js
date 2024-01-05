@@ -19,6 +19,7 @@ const newForm = () => {
   const {form_fn, new_form} = useLocalSearchParams()
 
   const [mForm, setForm] = useState({pages: [{"fields": {}}]});
+  const [formData, setFormData] = useState([])
   const [page, setPage]   = useState(0)
   const [totalPages, setTotalPages] = useState(0)
 
@@ -30,10 +31,8 @@ const newForm = () => {
     setForm(nForm); // set new json
   }
 
-  let myFormData = []
-  for (const key in mForm.pages[page].fields){
-    myFormData.push(FormFields(mForm.pages[page].fields[key], key, update))
-  }
+  
+  
   
   const saveFormToFile = async (uid, filled_form) => {
     
@@ -73,7 +72,7 @@ const newForm = () => {
 
   }
 
-  const nextPage = (event) => {
+  const nextPage = (event) => { 
     event.preventDefault();
     setPage(page+1)
   }
@@ -85,7 +84,7 @@ const newForm = () => {
 
     let prev = <View></View>;
     let next = <View></View>;
-    if( page <= totalPages ){
+    if( page < totalPages ){
       next = <Button onPress={nextPage} title="Next Page" color="#841584" />
     }
     if( page > 0 ){
@@ -116,10 +115,23 @@ const newForm = () => {
     )
   }, []);
 
-  
+  //useEffect(() => {
+      // action on update of page
+      console.log(page,' - ',totalPages)
+
+      let myFormData = []
+      if(page < totalPages){
+        myFormData.push(FormFields(mForm.pages[page],page,0))
+        for (const key in mForm.pages[page].fields){
+          myFormData.push(FormFields(mForm.pages[page].fields[key], key, update))
+        }
+        //setFormData(myFormData)
+      }
+  //}, [page]);
+
   useLayoutEffect(() => {
     navigation.setOptions({
-      title: 'Fill New Forms',
+      title: 'Fill New Forms '+page+'/'+totalPages,
     });
   }, [navigation]);
 
@@ -136,9 +148,14 @@ const newForm = () => {
             </View>
           </View>
         ):(
-          <View>
-            <Button onPress={() => submitForm('draft')} title="Save Draft" color="#841584" />
-            <Button onPress={() => submitForm('Finalized')} title="Finalize" color="#841584" />
+          <View style={{flex: 1}}>
+            <ScrollView style={{flex: 1, padding: 10, backgroundColor: "white", }}>
+              <Button onPress={() => submitForm('draft')} title="Save Draft" color="#841584" />
+              <Button onPress={() => submitForm('Finalized')} title="Finalize" color="#841584" />
+            </ScrollView>
+            <View style={{backgroundColor: "white"}}>
+              {pageLinks()}
+            </View>
           </View>
 
         )
