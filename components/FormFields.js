@@ -7,50 +7,39 @@ import { Ionicons, AntDesign, MaterialIcons,MaterialCommunityIcons, Entypo} from
 
 export default function FormFields(props, index, update) {
 
-    if(props.as === 'input'){
+    console.log('in form fields')
+    console.log(props)
+    console.log(index)
+
+    if(props.type === 'integer'){
         return (
             <View style={styles.item_wrp} key={index}>
-                <Text style={styles.item_label }> {props.label} </Text>
+                <Text style={styles.item_label }>{props.label}</Text>
                 <TextInput style={styles.input} placeholder={props.label} name={props.name} value={props.val} onChangeText={(e) => { update(index,e);}}/>
             </View>
         )
     }
 
-    if(props.as === 'password'){
+    else if(props.type === 'password'){
         return (
             <View style={styles.item_wrp} key={index}>
-                <Text style={styles.item_label }> {props.label} </Text>
+                <Text style={styles.item_label }>{props.label}</Text>
                 <TextInput style={styles.input} placeholder={props.label} value={props.val} onChange={(e) => {update(index,e.nativeEvent.text)}}/>
             </View>
         )
     }
 
-    if(props.as === 'email'){
+    else if(props.type === 'email'){
         return (
             <View style={styles.item_wrp} key={index}>
-                <Text style={styles.item_label }> {props.label} </Text>
+                <Text style={styles.item_label }>{props.label}</Text>
                 <TextInput style={styles.input} placeholder={props.label} value={props.val} onChangeText={text => update(index,text) }  />
             </View>
         )
     }
 
-    if(props.as === 'select2'){
-
-        let options = props.options.map( (element, key) => <Picker.Item label={element.label} value={element.value} key={index+'_'+key} /> )
-        return (
-            <View style={styles.item_wrp} key={index}>
-                <Text style={styles.item_label }> {props.label} </Text>
-                <Picker
-                    selectedValue={props.val}
-                    mode="dropdown"
-                    onValueChange={(itemValue, itemIndex) => update(index,itemValue)}>
-                    {options}
-                </Picker>
-            </View>
-        )
-    }
-
-    if(props.as === 'select1'){
+    
+    else if(props.type === 'select_one'){
 
         const renderItem = item => {
             return (
@@ -70,7 +59,7 @@ export default function FormFields(props, index, update) {
 
         return (
             <View style={styles.item_wrp} key={index}>
-                <Text style={styles.item_label }> {props.label} </Text>
+                <Text style={styles.item_label }>{props.label}</Text>
                 <Dropdown
                     style={styles.dropdown}
                     placeholderStyle={styles.placeholderStyle}
@@ -98,12 +87,12 @@ export default function FormFields(props, index, update) {
 
 
 
-    if(props.as === 'select'){
+    else if(props.type === 'select'){
         
         
         return (
             <View style={styles.item_wrp} key={index}>
-              <Text style={styles.item_label }> {props.label} </Text>
+              <Text style={styles.item_label }>{props.label}</Text>
               <MultiSelect
                 style={styles.dropdown}
                 placeholderStyle={styles.placeholderStyle}
@@ -123,6 +112,16 @@ export default function FormFields(props, index, update) {
               />
             </View>
           );
+    }
+
+    else {
+        
+        return (
+            <View style={styles.item_wrp} key={index}>
+                <Text style={styles.item_label }>{props.label}</Text>
+                <TextInput style={styles.input} placeholder={props.label} name={props.name} value={props.val} onChangeText={(e) => { update(index,e);}}/>
+            </View>
+        )
 
     }
 };

@@ -18,7 +18,7 @@ const newForm = () => {
 
   const {form_fn, new_form} = useLocalSearchParams()
 
-  const [mForm, setForm] = useState({fields: [{}]});
+  const [mForm, setForm] = useState({pages: [{"fields": {}}]});
   const [page, setPage]   = useState(0)
   const [totalPages, setTotalPages] = useState(0)
 
@@ -26,13 +26,13 @@ const newForm = () => {
   
   function update(index, newValue) {
     const nForm = {...mForm} // shallow copy
-    nForm["fields"][page][index]["val"] = newValue; // update index
+    nForm["pages"][page]['fields'][index]["val"] = newValue; // update index
     setForm(nForm); // set new json
   }
 
   let myFormData = []
-  for (const key in mForm.fields[page]){
-    myFormData.push(FormFields(mForm.fields[page][key],key, update))
+  for (const key in mForm.pages[page].fields){
+    myFormData.push(FormFields(mForm.pages[page].fields[key], key, update))
   }
   
   const saveFormToFile = async (uid, filled_form) => {
@@ -109,7 +109,7 @@ const newForm = () => {
       (xForm) =>{
         let tForm = JSON.parse(xForm)
         setForm(tForm)
-        setTotalPages(tForm.fields.length)
+        setTotalPages(tForm.pages.length)
       }
     ).catch(
       (e) => {console.log(e)}
