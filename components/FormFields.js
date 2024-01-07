@@ -1,8 +1,9 @@
 import { Text, View, input, TextInput, StyleSheet} from 'react-native'
 import {Picker} from '@react-native-picker/picker';
 import { Dropdown, MultiSelect } from 'react-native-element-dropdown';
-import { Input } from '@rneui/base';
+import { Input, Slider } from '@rneui/base';
 import { Ionicons, AntDesign, MaterialIcons,MaterialCommunityIcons, Entypo} from '@expo/vector-icons';
+
 
 
 export default function FormFields(props, index, update) {
@@ -51,13 +52,14 @@ export default function FormFields(props, index, update) {
                 <Text style={styles.item_hint }>{props.hint}</Text>
                 <TextInput 
                     multiline={true}
-                    numberOfLines={4}
-                    textAlignVertical={top}
+                    numberOfLines={5}
+                    //textAlignVertical={'top'}
                     style={styles.input} 
                     placeholder={props.label} 
                     name={props.name} 
                     value={props.val} 
-                    onChangeText={(e) => { update(index,e);}}/>
+                    onChangeText={(e) => { update(index,e);}}
+                />
             </View>
         )
     }
@@ -72,7 +74,8 @@ export default function FormFields(props, index, update) {
                     style={styles.input} 
                     placeholder={props.label} 
                     value={props.val} 
-                    onChange={(e) => {update(index,e.nativeEvent.text)}}/>
+                    onChange={(e) => {update(index,e.nativeEvent.text)}}
+                />
             </View>
         )
     }
@@ -87,9 +90,33 @@ export default function FormFields(props, index, update) {
                     style={styles.input} 
                     placeholder={props.label} 
                     value={props.val} 
-                    onChangeText={text => update(index,text) }  />
+                    onChangeText={text => update(index,text) }  
+                />
             </View>
         )
+    }
+
+
+
+    else if(props.type === 'range'){
+
+        // get paramenters
+        let p = props.parameters
+        return (
+            <View style={styles.item_wrp} key={index}>
+                <Text style={styles.item_label }>{props.label}</Text>
+                <Text style={styles.item_hint }>{props.hint}</Text>
+                <Slider
+                    value={props.val}
+                    onValueChange={ text => update(index,text) }
+                    maximumValue={10}
+                    minimumValue={0}
+                    step={1}
+                    allowTouchTrack
+                />
+            </View>
+        )
+
     }
 
     
@@ -139,8 +166,6 @@ export default function FormFields(props, index, update) {
         )
 
     }
-
-
 
     else if(props.type === 'select'){
         

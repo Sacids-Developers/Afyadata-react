@@ -8,6 +8,7 @@ import { Link, router } from 'expo-router';
 import * as Crypto from 'expo-crypto';
 import * as FileSystem from 'expo-file-system';
 
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { useLocalSearchParams, useNavigation } from 'expo-router'
 import { PATH } from '../../constants/global';
@@ -131,7 +132,7 @@ const newForm = () => {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      title: 'Fill New Forms '+page+'/'+totalPages,
+      title: 'Fill New Forms ',
     });
   }, [navigation]);
 
@@ -149,12 +150,26 @@ const newForm = () => {
           </View>
         ):(
           <View style={{flex: 1}}>
-            <ScrollView style={{flex: 1, padding: 10, backgroundColor: "white", }}>
-              <Button onPress={() => submitForm('draft')} title="Save Draft" color="#841584" />
-              <Button onPress={() => submitForm('Finalized')} title="Finalize" color="#841584" />
-            </ScrollView>
-            <View style={{backgroundColor: "white"}}>
-              {pageLinks()}
+            <View style={{flex: 1, padding: 10, backgroundColor: "white", justifyContent: 'center', paddingVertical:20,}}>
+
+              <View style={{}}>
+                <Text style={{fontWeight: "bold", fontSize: 20, paddingBottom: 20}}>
+                  You are at the end of 
+                </Text>
+                <View style={{flexDirection: "row", backgroundColor: "#bde1f2", borderRadius: 20, padding: 20, fontSize: 16}}>
+                  <MaterialCommunityIcons name="information-outline" size={24} color="black" />
+                  <Text style={{paddingLeft: 10}}>Once the message is sent, you won't have the option to make edits. To make changes, "Save as Draft" until you're prepared to send it.</Text>
+                </View>
+              </View>
+              <View style={{flexDirection: "row", marginTop: 30, justifyContent: "space-around" }}>
+                <Button 
+                  style={{borderWidth:1, borderColor: "maroon", paddingVertical: 3, paddingHorizontal: 10, borderRadius: 20}}
+                  onPress={() => submitForm('draft')} 
+                  title="Save Draft" 
+                  color="#841584" 
+                />
+                <Button onPress={() => submitForm('Finalized')} title="Finalize" color="#841584" />
+              </View>
             </View>
           </View>
 
