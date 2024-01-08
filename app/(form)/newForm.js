@@ -1,5 +1,5 @@
 
-import { Text, View, TextInput, Button } from 'react-native'
+import { Text, View, TextInput, Button, TouchableHighlight, StyleSheet } from 'react-native'
 import React, { useEffect, useLayoutEffect, useState } from 'react'
 import { useForm } from "react-hook-form";
 import FormFields from '../../components/FormFields';
@@ -156,19 +156,26 @@ const newForm = () => {
                 <Text style={{fontWeight: "bold", fontSize: 20, paddingBottom: 20}}>
                   You are at the end of 
                 </Text>
-                <View style={{flexDirection: "row", backgroundColor: "#bde1f2", borderRadius: 20, padding: 20, fontSize: 16}}>
+                <View style={{flexDirection: "row", backgroundColor: "#bde1f2", borderRadius: 10, padding: 15, fontSize: 16}}>
                   <MaterialCommunityIcons name="information-outline" size={24} color="black" />
-                  <Text style={{paddingLeft: 10}}>Once the message is sent, you won't have the option to make edits. To make changes, "Save as Draft" until you're prepared to send it.</Text>
+                  <Text style={{paddingHorizontal: 10}}>Once the message is sent, you won't have the option to make edits. To make changes, "Save as Draft" until you're prepared to send it.</Text>
                 </View>
               </View>
               <View style={{flexDirection: "row", marginTop: 30, justifyContent: "space-around" }}>
-                <Button 
-                  style={{borderWidth:1, borderColor: "maroon", paddingVertical: 3, paddingHorizontal: 10, borderRadius: 20}}
-                  onPress={() => submitForm('draft')} 
-                  title="Save Draft" 
-                  color="#841584" 
-                />
-                <Button onPress={() => submitForm('Finalized')} title="Finalize" color="#841584" />
+                <TouchableHighlight style={[styles.button]}>
+                  <Button 
+                    onPress={() => submitForm('draft')} 
+                    title="Save as Draft" 
+                    color="maroon" 
+                  />
+                </TouchableHighlight>
+                <TouchableHighlight style={[styles.button, {backgroundColor: "maroon"}]} >
+                  <Button
+                    onPress={() => submitForm('Finalized')} 
+                    title="Finalize Form" 
+                    color="white" 
+                  />
+                </TouchableHighlight>
               </View>
             </View>
           </View>
@@ -182,3 +189,19 @@ const newForm = () => {
 export default newForm
 
 
+const styles = StyleSheet.create({
+
+  container: {
+    flex: 1,
+  },
+
+  button: {
+    borderWidth:1, 
+    borderColor: "maroon", 
+    paddingVertical: 3, 
+    paddingHorizontal: 10, 
+    borderRadius: 20,
+    backgroundColor: "transparent",
+  }
+
+})
