@@ -29,21 +29,8 @@ export default function Login() {
 
     //validate fields
     const validate = () => {
-        //username
-        if (!username) {
-            setErrorUsername(('Username required'));
-            return false;
-        } else {
-            setErrorUsername("");
-        }
-
-        //password
-        if (!password) {
-            setErrorPassword(('Password required'));
-            return false;
-        } else {
-            setErrorPassword("");
-        }
+         //TODO: Form Validation
+         
         //return
         return true;
     };
