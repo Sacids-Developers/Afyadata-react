@@ -1,5 +1,5 @@
 
-import { Text, View, TextInput, Button } from 'react-native'
+import { Text, View, TextInput, Button, TouchableHighlight, StyleSheet } from 'react-native'
 import React, { useEffect, useLayoutEffect, useState } from 'react'
 import { useForm } from "react-hook-form";
 import FormFields from '../../components/FormFields';
@@ -8,6 +8,7 @@ import { Link, router } from 'expo-router';
 import * as Crypto from 'expo-crypto';
 import * as FileSystem from 'expo-file-system';
 
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { useLocalSearchParams, useNavigation } from 'expo-router'
 import { PATH } from '../../constants/global';
@@ -18,7 +19,8 @@ const newForm = () => {
 
   const {form_fn, new_form} = useLocalSearchParams()
 
-  const [mForm, setForm] = useState({fields: [{}]});
+  const [mForm, setForm] = useState({pages: [{"fields": {}}]});
+  const [formData, setFormData] = useState([])
   const [page, setPage]   = useState(0)
   const [totalPages, setTotalPages] = useState(0)
 
@@ -26,14 +28,12 @@ const newForm = () => {
   
   function update(index, newValue) {
     const nForm = {...mForm} // shallow copy
-    nForm["fields"][page][index]["val"] = newValue; // update index
+    nForm["pages"][page]['fields'][index]["val"] = newValue; // update index
     setForm(nForm); // set new json
   }
 
-  let myFormData = []
-  for (const key in mForm.fields[page]){
-    myFormData.push(FormFields(mForm.fields[page][key],key, update))
-  }
+  
+  
   
   const saveFormToFile = async (uid, filled_form) => {
     
@@ -73,7 +73,7 @@ const newForm = () => {
 
   }
 
-  const nextPage = (event) => {
+  const nextPage = (event) => { 
     event.preventDefault();
     setPage(page+1)
   }
@@ -85,7 +85,7 @@ const newForm = () => {
 
     let prev = <View></View>;
     let next = <View></View>;
-    if( page <= totalPages ){
+    if( page < totalPages ){
       next = <Button onPress={nextPage} title="Next Page" color="#841584" />
     }
     if( page > 0 ){
@@ -109,17 +109,30 @@ const newForm = () => {
       (xForm) =>{
         let tForm = JSON.parse(xForm)
         setForm(tForm)
-        setTotalPages(tForm.fields.length)
+        setTotalPages(tForm.pages.length)
       }
     ).catch(
       (e) => {console.log(e)}
     )
   }, []);
 
-  
+  //useEffect(() => {
+      // action on update of page
+      console.log(page,' - ',totalPages)
+
+      let myFormData = []
+      if(page < totalPages){
+        myFormData.push(FormFields(mForm.pages[page],page,0))
+        for (const key in mForm.pages[page].fields){
+          myFormData.push(FormFields(mForm.pages[page].fields[key], key, update))
+        }
+        //setFormData(myFormData)
+      }
+  //}, [page]);
+
   useLayoutEffect(() => {
     navigation.setOptions({
-      title: 'Fill New Forms',
+      title: 'Fill New Forms ',
     });
   }, [navigation]);
 
@@ -136,9 +149,35 @@ const newForm = () => {
             </View>
           </View>
         ):(
-          <View>
-            <Button onPress={() => submitForm('draft')} title="Save Draft" color="#841584" />
-            <Button onPress={() => submitForm('Finalized')} title="Finalize" color="#841584" />
+          <View style={{flex: 1}}>
+            <View style={{flex: 1, padding: 10, backgroundColor: "white", justifyContent: 'center', paddingVertical:20,}}>
+
+              <View style={{}}>
+                <Text style={{fontWeight: "bold", fontSize: 20, paddingBottom: 20}}>
+                  You are at the end of 
+                </Text>
+                <View style={{flexDirection: "row", backgroundColor: "#bde1f2", borderRadius: 10, padding: 15, fontSize: 16}}>
+                  <MaterialCommunityIcons name="information-outline" size={24} color="black" />
+                  <Text style={{paddingHorizontal: 10}}>Once the message is sent, you won't have the option to make edits. To make changes, "Save as Draft" until you're prepared to send it.</Text>
+                </View>
+              </View>
+              <View style={{flexDirection: "row", marginTop: 30, justifyContent: "space-around" }}>
+                <TouchableHighlight style={[styles.button]}>
+                  <Button 
+                    onPress={() => submitForm('draft')} 
+                    title="Save as Draft" 
+                    color="maroon" 
+                  />
+                </TouchableHighlight>
+                <TouchableHighlight style={[styles.button, {backgroundColor: "maroon"}]} >
+                  <Button
+                    onPress={() => submitForm('Finalized')} 
+                    title="Finalize Form" 
+                    color="white" 
+                  />
+                </TouchableHighlight>
+              </View>
+            </View>
           </View>
 
         )
@@ -150,3 +189,19 @@ const newForm = () => {
 export default newForm
 
 
+const styles = StyleSheet.create({
+
+  container: {
+    flex: 1,
+  },
+
+  button: {
+    borderWidth:1, 
+    borderColor: "maroon", 
+    paddingVertical: 3, 
+    paddingHorizontal: 10, 
+    borderRadius: 20,
+    backgroundColor: "transparent",
+  }
+
+})
