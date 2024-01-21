@@ -29,7 +29,7 @@ export default function index() {
     createDirectory('DATA');
   }, []);
 
-  //return <Redirect href="/(tabs)/updates" />
-  return <Redirect href="/auth/login" />
+  return <Redirect href="/(tabs)/updates" />
+  //return <Redirect href="/auth/login" />
 
 }
