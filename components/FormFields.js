@@ -64,6 +64,33 @@ export default function FormFields(props, index, update) {
         )
     }
 
+    if(props.as === "location"){
+      return(
+        <View style={styles.item_wrp} key={index}>
+          <Text style={styles.item_label }>{props.label}</Text>
+          
+        </View>
+      )
+    }
+
+    if(props.as === "image"){
+      return(
+        <View style={styles.item_wrp} key={index}>
+          <Text style={styles.item_label }>{props.label} </Text>
+          
+        </View>
+      )
+    }
+
+    if(props.as === "video"){
+      return(
+        <View style={styles.item_wrp} key={index}>
+          <Text style={styles.item_label }>{props.label} </Text>
+
+        </View>
+      )
+    }
+
     else if(props.type === 'password'){
         return (
             <View style={styles.item_wrp} key={index}>
@@ -167,7 +194,9 @@ export default function FormFields(props, index, update) {
 
     }
 
-    else if(props.type === 'select'){
+
+
+    if(props.as === 'select'){
         
         
         return (

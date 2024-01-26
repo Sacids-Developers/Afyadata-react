@@ -30,6 +30,7 @@ export default function index() {
     createDirectory('DATA/MEDIA');
   }, []);
 
-  return <Redirect href="/updates" />
+  return <Redirect href="/(tabs)/updates" />
+  //return <Redirect href="/auth/login" />
 
 }
