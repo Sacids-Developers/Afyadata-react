@@ -5,11 +5,15 @@ import { Dropdown, MultiSelect } from 'react-native-element-dropdown';
 import { Input, Slider } from '@rneui/base';
 import { Ionicons, AntDesign, MaterialIcons, MaterialCommunityIcons, Entypo } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import * as Location from 'expo-location';
 
 
 export default function FormFields(props, index, update) {
-  const [permission, requestPermission] = ImagePicker.useCameraPermissions();
   const [image, setImage] = useState(null)
+  const [location, setLocation] = useState(null);
+
+  //TODO: check for permission
+
 
   //take photo
   const takePhoto = async () => {
@@ -32,6 +36,18 @@ export default function FormFields(props, index, update) {
       Alert.alert("Error Uploading Image " + e.message);
     }
   };
+
+  //capturing Location
+  const getLocation = async () => {
+    const userLocation = await Location.getCurrentPositionAsync();
+
+    //TODO: save location parameters
+
+
+    return userLocation.coords;
+  };
+
+
 
 
   //returning view
@@ -95,7 +111,7 @@ export default function FormFields(props, index, update) {
     return (
       <View style={styles.item_wrp} key={index}>
         <Text style={styles.item_label}>{props.label}</Text>
-
+        <Button title="Get Location" onPress={getLocation} />
       </View>
     )
   }
