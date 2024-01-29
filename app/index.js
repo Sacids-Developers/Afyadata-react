@@ -27,6 +27,7 @@ export default function index() {
   useEffect(() => {
     createDirectory('DEFN');
     createDirectory('DATA');
+    createDirectory('DATA/MEDIA');
   }, []);
 
   return <Redirect href="/(tabs)/updates" />
