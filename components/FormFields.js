@@ -4,9 +4,9 @@ import { Picker } from '@react-native-picker/picker';
 import { Dropdown, MultiSelect } from 'react-native-element-dropdown';
 import { Input, Slider } from '@rneui/base';
 import { Ionicons, AntDesign, MaterialIcons, MaterialCommunityIcons, Entypo } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
+import {ImagePicker} from 'expo-image-picker';
 import { Camera, CameraType } from 'expo-camera';
-import * as Location from 'expo-location';
+import * as Location from 'expo-location'
 
 
 export default function FormFields(props, index, update) {
@@ -14,7 +14,7 @@ export default function FormFields(props, index, update) {
   const [location, setLocation] = useState(null);
 
   //TODO: check for permission
-  const [permission, requestPermission] = Camera.useCameraPermissions();
+  //const [permission, requestPermission] = Camera.useCameraPermissions();
 
   //capturing photo
   const takePhoto = async () => {
@@ -45,12 +45,19 @@ export default function FormFields(props, index, update) {
 
   //capturing Location
   const getLocation = async () => {
-    const userLocation = await Location.getCurrentPositionAsync();
+    let {status} = await Location.requestForegroundPermissionsAsync();
 
+    if(status !== 'granted'){
+      console.log("Please grant location permission");
+      return;
+    }
+
+    let currentLocation = await Location.getCurrentPositionAsync({});
+    
     //TODO: save location parameters
+    setLocation(currentLocation.coords);
 
-
-    return userLocation.coords;
+    return currentLocation.coords;
   };
 
 
