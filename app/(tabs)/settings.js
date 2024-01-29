@@ -27,12 +27,12 @@ import { state } from '../../stores/state';
 
 let settings = [
   {id: 1, title: 'Language', icon: 'language', link_to: 'hapa'},
-  {id: 2, title: 'moja', icon: 'autorenew', link_to: 'hapa'},
-  {id: 3, title: 'mbili', icon: 'autorenew', link_to: 'hapa'},
-  {id: 4, title: 'server', icon: 'autorenew', link_to: 'hapa'},
-  {id: 5, title: 'projects', icon: 'autorenew', link_to: 'hapa'},
-  {id: 6, title: 'profile', icon: 'autorenew', link_to: 'hapa'},
-  {id: 7, title: 'theme', icon: 'autorenew', link_to: 'hapa'},
+  {id: 2, title: 'Text Font Size', icon: 'title', link_to: 'hapa'},
+  {id: 3, title: 'Navigation', icon: 'swipe', link_to: 'hapa'},
+  {id: 4, title: 'Theme', icon: 'pageview', link_to: 'hapa'},
+  {id: 5, title: 'Server', icon: 'computer', link_to: 'hapa'},
+  {id: 6, title: 'Profile', icon: 'badge', link_to: 'hapa'},
+
 ]
 
 
