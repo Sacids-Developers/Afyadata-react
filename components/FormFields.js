@@ -5,6 +5,7 @@ import { Dropdown, MultiSelect } from 'react-native-element-dropdown';
 import { Input, Slider } from '@rneui/base';
 import { Ionicons, AntDesign, MaterialIcons, MaterialCommunityIcons, Entypo } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import { Camera, CameraType } from 'expo-camera';
 import * as Location from 'expo-location';
 
 
@@ -13,9 +14,9 @@ export default function FormFields(props, index, update) {
   const [location, setLocation] = useState(null);
 
   //TODO: check for permission
+  const [permission, requestPermission] = Camera.useCameraPermissions();
 
-
-  //take photo
+  //capturing photo
   const takePhoto = async () => {
     try {
       const cameraResp = await ImagePicker.launchCameraAsync({
@@ -35,6 +36,11 @@ export default function FormFields(props, index, update) {
     } catch (e) {
       Alert.alert("Error Uploading Image " + e.message);
     }
+  };
+
+  //Record Video
+  const recordVideo = async () => {
+
   };
 
   //capturing Location
@@ -130,7 +136,7 @@ export default function FormFields(props, index, update) {
     return (
       <View style={styles.item_wrp} key={index}>
         <Text style={styles.item_label}>{props.label} </Text>
-
+        <Button title="Record Video" onPress={recordVideo} />
       </View>
     )
   }
