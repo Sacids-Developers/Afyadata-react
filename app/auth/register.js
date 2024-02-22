@@ -90,8 +90,9 @@ export default function Register() {
     //return view
     return (
         <SafeAreaView style={{ flex: 1, flexDirection: "column", backgroundColor: "#FFEBEE" }}>
-
             <View style={styles.container}>
+
+                <Image style={styles.logo} source={appLogo} />
 
                 <View style={{ margin: 16, alignItems: 'center' }}>
                     <Text style={{ fontSize: 16, color: "#424242" }}>
@@ -163,9 +164,9 @@ export default function Register() {
                         {('Already have an account?')}
                     </Text>
 
-                    <Text style={{paddingLeft: 4, color: "#781E14", fontSize: 16}} onPress={() => router.replace("/auth/login")}>
-                        {('Sign In.')}
-                    </Text>
+                    <Link href="/auth/login">
+                        <Text style={{color: "#781E14", fontSize: 16}}>Sign in</Text>
+                    </Link>
                 </View>
 
             </View>
@@ -243,6 +244,7 @@ const styles = StyleSheet.create({
         lineHeight: 21,
         letterSpacing: 0.25,
         color: '#424242',
+        paddingEnd: 4
     },
 
     errorMessage: {

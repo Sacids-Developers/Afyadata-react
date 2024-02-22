@@ -4,7 +4,7 @@ import { Picker } from '@react-native-picker/picker';
 import { Dropdown, MultiSelect } from 'react-native-element-dropdown';
 import { Input, Slider } from '@rneui/base';
 import { Ionicons, AntDesign, MaterialIcons, MaterialCommunityIcons, Entypo } from '@expo/vector-icons';
-import {ImagePicker} from 'expo-image-picker';
+import * as ImagePicker from 'expo-image-picker';
 import { Camera, CameraType } from 'expo-camera';
 import * as Location from 'expo-location'
 

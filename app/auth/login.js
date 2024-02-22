@@ -107,11 +107,11 @@ export default function Login() {
 
                 <View style={{ flexDirection: "row",marginTop: 20, }}>
                     <Text style={styles.belowText}>
-                    {('Don\'t have an account? Sign Up.')}
+                    {('Don\'t have an account?')}
                     </Text>
 
                     <Text style={{paddingLeft: 4, color: "#781E14", fontSize: 16}} onPress={() => router.replace("/auth/register")}>
-                        {('Sign In.')}
+                        {('Sign up.')}
                     </Text>
                 </View>
 
