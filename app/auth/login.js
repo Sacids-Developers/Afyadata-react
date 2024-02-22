@@ -26,11 +26,13 @@ export default function Login() {
     const [password, setPassword] = useState("");
     const [errorPassword, setErrorPassword] = useState("");
 
+    const [errorMsg, setErrorMsg] = useState("");
+
 
     //validate fields
     const validate = () => {
-         //TODO: Form Validation
-         
+        //TODO: Form Validation
+
         //return
         return true;
     };
@@ -48,8 +50,10 @@ export default function Login() {
                 password: password,
             };
 
+            console.log(JSON.stringify(payload));
+
             //API URL
-            const LOGIN_URL = "";
+            const LOGIN_URL = "https://dev.sacids.org/api/v1/login";
 
             //post data 
             fetch(LOGIN_URL, {
@@ -66,9 +70,26 @@ export default function Login() {
 
                     //logging response
                     console.log(responseJson);
+
+                    //If server response message same as Data Matched
+                    if (responseJson.error === false) {
+                        AsyncStorage.setItem('access_token', responseJson.access);
+                        AsyncStorage.setItem('refresh_token', responseJson.refresh);
+                        AsyncStorage.setItem("user", JSON.stringify(responseJson.user))
+
+                        router.replace('/(tabs)/updates')
+                    } else {
+                        //error message
+                        setErrorMsg(responseJson.message);
+
+                        //clear only password
+                        setPassword("");
+                    }
                 })
                 .catch((error) => {
                     setLoading(false);
+                    console.log("Error");
+                    console.log(error);
                 });
         }
     };
@@ -79,12 +100,13 @@ export default function Login() {
         <SafeAreaView style={{ flex: 1, flexDirection: "column", backgroundColor: "#FFEBEE" }}>
 
             <View style={styles.container}>
-
                 <Image style={styles.logo} source={appLogo} />
+
+                {errorMsg != '' ? (<Text style={styles.errorMsg}>{errorMsg}</Text>) : null}
 
                 <CustomTextInput style={styles.textInput}
                     underlineColorAndroid="transparent"
-                    placeholder={('Email or phone number...')}
+                    placeholder={('Username or phone...')}
                     keyboardType='default'
                     placeholderTextColor="#757575"
                     value={username}
@@ -105,12 +127,12 @@ export default function Login() {
                     <Text style={styles.textButton}>{('Sign In')}</Text>
                 </Pressable>
 
-                <View style={{ flexDirection: "row",marginTop: 20, }}>
+                <View style={{ flexDirection: "row", marginTop: 20, }}>
                     <Text style={styles.belowText}>
-                    {('Don\'t have an account?')}
+                        {('Don\'t have an account?')}
                     </Text>
 
-                    <Text style={{paddingLeft: 4, color: "#781E14", fontSize: 16}} onPress={() => router.replace("/auth/register")}>
+                    <Text style={{ paddingLeft: 4, color: "#781E14", fontSize: 16 }} onPress={() => router.replace("/auth/register")}>
                         {('Sign up.')}
                     </Text>
                 </View>
