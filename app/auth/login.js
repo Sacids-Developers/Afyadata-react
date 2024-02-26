@@ -29,6 +29,8 @@ export default function Login() {
 
     const [errorMsg, setErrorMsg] = useState("");
 
+    //clear async storage
+    AsyncStorage.clear();
 
     //validate fields
     const validate = () => {
@@ -54,7 +56,7 @@ export default function Login() {
             console.log(JSON.stringify(payload));
 
             //API URL
-            const LOGIN_URL = "https://dev.sacids.org/api/v1/login";
+            const LOGIN_URL = "http://192.168.100.58:8000/api/v1/login";
 
             //post data 
             fetch(LOGIN_URL, {
