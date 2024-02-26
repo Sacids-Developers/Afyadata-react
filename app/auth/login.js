@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link, router } from 'expo-router'
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Link, router } from 'expo-router';
 import {
     Platform,
     KeyboardAvoidingView,
@@ -77,10 +78,11 @@ export default function Login() {
                         AsyncStorage.setItem('refresh_token', responseJson.refresh);
                         AsyncStorage.setItem("user", JSON.stringify(responseJson.user))
 
+                        //redirect
                         router.replace('/(tabs)/updates')
                     } else {
                         //error message
-                        setErrorMsg(responseJson.message);
+                        setErrorMsg(responseJson.error_msg);
 
                         //clear only password
                         setPassword("");

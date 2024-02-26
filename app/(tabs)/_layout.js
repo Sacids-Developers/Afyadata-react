@@ -49,7 +49,6 @@ export default function Layout() {
                 tabBarIcon: ({ focused, color, size }) => (<Text style={{ fontSize: 16, color: color }}>My Data</Text>),
                 title: '',
             }}>
-
         </Tabs.Screen>
 
         <Tabs.Screen name="settings"
