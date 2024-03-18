@@ -27,9 +27,9 @@ export default function index() {
   useEffect(() => {
     createDirectory('DEFN');
     createDirectory('DATA');
-    createDirectory('DATA/MEDIA');
+    createDirectory('MEDIA');
   }, []);
 
-  //return <Redirect href="/(tabs)/updates" />
-  return <Redirect href="/auth/login" />
+  return <Redirect href="/(tabs)/updates" />
+  //return <Redirect href="/auth/login" />
 }

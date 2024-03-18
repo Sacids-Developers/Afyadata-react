@@ -38,221 +38,220 @@ const downloadForms = () => {
 
   const navigation = useNavigation();
 
-    language = 'en'
 
-    _getFilesInDirectory = async() => {
+  useEffect(() => {
+    _getFilesFromServer();
+    _getFilesInDirectory();
+  }, []);
+
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: 'Download Forms',
+    });
+  }, [navigation]);
+
+  language = 'en'
+
+  _getFilesInDirectory = async() => {
+    
+    let files = [];
+    let dir = await FileSystem.readDirectoryAsync(PATH.form_defn);
+
+    dir.forEach((val) => {
+
+      // read json file
       
-      let files = [];
-      let dir = await FileSystem.readDirectoryAsync(PATH.form_defn);
+      let tmp = {
+        "file_name": val,
+        "created_at": ""
+      }
+      files.push(tmp);
+    
+    });
+    console.log(files)
+    setData(files)
+    setLoading(false)
 
-      dir.forEach((val) => {
+    ;
+  }
 
-        // read json file
-        
-        let tmp = {
-          "file_name": val,
-          "created_at": ""
-        }
-        files.push(tmp);
-      
-      });
-      console.log(files)
-      setData(files)
+  _getFilesFromServer = async() => {
+
+    try {
+
+      console.log(URL.form_list)
+      const response = await axios.get(URL.form_list);
+
+      const fetchedData = response.data;
+      setFormList(fetchedData);
+
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }finally{
       setLoading(false)
-
-      ;
     }
 
-    _getFilesFromServer = async() => {
+  }
 
-      
-      try {
-
-        const response = await axios.get(URL.form_list);
-        const fetchedData = response.data;
-
-        console.log(fetchedData)
-        setFormList(fetchedData);
-
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }finally{
-        setLoading(false)
-      }
-
-    }
-
-    const callback = downloadProgress => {
-      const progress = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
-      setDownloadProgres(progress)
-    };
+  const callback = downloadProgress => {
+    const progress = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
+    setDownloadProgres(progress)
+  };
     
-    const do_download = () =>  {
-    
-      formList.forEach( async (item) => {
-
-        if(item.checked){
-          
-          console.log(item.downloadUrl)
-      
-          
-          const downloadResumable = FileSystem.createDownloadResumable(
-            item.downloadUrl,
-            PATH.form_defn+item.formID,
-            {},
-            callback
-          );
-      
-          try {
-            const { uri } = await downloadResumable.downloadAsync();
-            console.log('Finished downloading to ', uri);
-          } catch (e) {
-            console.error(e);
-          }
-          
-        }
-      })
+  const do_download = () =>  {
   
-    }
+    formList.forEach( async (item) => {
 
-    const handleCheck = () => {
-
-      setFilesChosen(false)
-      formList.forEach((item) => {
-        if(item.checked){
-          setFilesChosen(true)
+      if(item.checked){
+        
+        console.log(item.downloadUrl)
+    
+        
+        const downloadResumable = FileSystem.createDownloadResumable(
+          item.downloadUrl,
+          PATH.form_defn+item.formID,
+          {},
+          callback
+        );
+    
+        try {
+          const { uri } = await downloadResumable.downloadAsync();
+          console.log('Finished downloading to ', uri);
+        } catch (e) {
+          console.error(e);
         }
-      })
+        
+      }
+    })
 
-    }
+  }
+
+  const handleCheck = () => {
+
+    setFilesChosen(false)
+    formList.forEach((item) => {
+      if(item.checked){
+        setFilesChosen(true)
+      }
+    })
+
+  }
 
     
 
-    const Item = ({item}) => (
+  const Item = ({item}) => (
 
-      <View style={styles.item}>
-        <CheckBox
-          title={item.name + ' : '+ item.formID}
-          checked={item.checked}
-          checkedColor={COLORS.fontColor}
-          onPress={() => {
-            const items = [...formList] // <-- shallow copy to show we're not mutating state
-            const currentItemIndex = items.findIndex(v => v.formID === item.formID) // <-- lookup by something unique on the item like an ID. It's better to lookup rather than assume the array indexes are ordered the same.
-            items[currentItemIndex].checked = !items[currentItemIndex].checked
-            setFormList(items);
-            handleCheck();
+    <View style={styles.item}>
+      <CheckBox
+        title={item.name + ' : '+ item.formID}
+        checked={item.checked}
+        checkedColor={COLORS.fontColor}
+        onPress={() => {
+          const items = [...formList] // <-- shallow copy to show we're not mutating state
+          const currentItemIndex = items.findIndex(v => v.formID === item.formID) // <-- lookup by something unique on the item like an ID. It's better to lookup rather than assume the array indexes are ordered the same.
+          items[currentItemIndex].checked = !items[currentItemIndex].checked
+          setFormList(items);
+          handleCheck();
 
-          }}
-        />
-      </View>
+        }}
+      />
+    </View>
 
-    );
+  );
 
-    useEffect(() => {
-      _getFilesFromServer();
-      _getFilesInDirectory();
-    }, []);
+  const handleRefresh = () => {
+    setLoading(true); // Set refreshing to true to show the loading indicator
+    _getFilesInDirectory();
+    //fetchDataAndStore(language, setData, setLoading); // Fetch data when pulled down for refresh
+  };
 
-
-    useLayoutEffect(() => {
-      navigation.setOptions({
-        title: 'Download Forms',
-      });
-    }, [navigation]);
-
-
-    const handleRefresh = () => {
-      setLoading(true); // Set refreshing to true to show the loading indicator
-      _getFilesInDirectory();
-      //fetchDataAndStore(language, setData, setLoading); // Fetch data when pulled down for refresh
-    };
-
-    const scrollY = useSharedValue(0);
+  const scrollY = useSharedValue(0);
   
-    const onScroll = useAnimatedScrollHandler((event) => {
-      scrollY.value = event.contentOffset.y;
-    });
+  const onScroll = useAnimatedScrollHandler((event) => {
+    scrollY.value = event.contentOffset.y;
+  });
 
-    const summaryBlockStyle = useAnimatedStyle(() => {
+  const summaryBlockStyle = useAnimatedStyle(() => {
 
-      return {
-        height:   interpolate(scrollY.value,[0,HEADER_MAX_HEIGHT],[HEADER_MAX_HEIGHT,HEADER_MIN_HEIGHT],Extrapolation.CLAMP),
-        //marginBottom: interpolate(scrollY.value,[0,200],[0,HEADER_MIN_HEIGHT],Extrapolation.CLAMP)
-        opacity:  interpolate(scrollY.value,[0, HEADER_SCROLL_DISTANCE / 2, HEADER_SCROLL_DISTANCE],[1, 1, 0],Extrapolation.CLAMP),
+    return {
+      height:   interpolate(scrollY.value,[0,HEADER_MAX_HEIGHT],[HEADER_MAX_HEIGHT,HEADER_MIN_HEIGHT],Extrapolation.CLAMP),
+      //marginBottom: interpolate(scrollY.value,[0,200],[0,HEADER_MIN_HEIGHT],Extrapolation.CLAMP)
+      opacity:  interpolate(scrollY.value,[0, HEADER_SCROLL_DISTANCE / 2, HEADER_SCROLL_DISTANCE],[1, 1, 0],Extrapolation.CLAMP),
+        
+    }
+  });
+
+
+  const titleBlockStyle = useAnimatedStyle(() => {
+
+    return {
+      opacity:  interpolate(scrollY.value,[0, HEADER_SCROLL_DISTANCE / 2, HEADER_SCROLL_DISTANCE],[0, 1, 1],Extrapolation.CLAMP),     
+    }
+  });
+
+  return (
+    <SafeAreaView style={{ flex: 1,}}>
+      { isLoading ? 
+        (<ActivityIndicator  size="large" color="#0000ff" />):
+        (              
+        <View style={{ flex: 1, backgroundColor: COLORS.backgroundColor}}>
           
-      }
-    });
+            <Animated.View style={[styles.header, summaryBlockStyle ]}>
+              <Ionicons name="ios-download-outline" size={50} color={COLORS.fontColor}  />
+              <Text style={{fontSize: 30, color: COLORS.fontColor, paddingTop: 8,}}>Download Form</Text>
+            </Animated.View>
 
-
-    const titleBlockStyle = useAnimatedStyle(() => {
-
-      return {
-        opacity:  interpolate(scrollY.value,[0, HEADER_SCROLL_DISTANCE / 2, HEADER_SCROLL_DISTANCE],[0, 1, 1],Extrapolation.CLAMP),     
-      }
-    });
-
-    return (
-      <SafeAreaView style={{ flex: 1,}}>
-        { isLoading ? 
-          (<ActivityIndicator  size="large" color="#0000ff" />):
-          (              
-          <View style={{ flex: 1, backgroundColor: COLORS.backgroundColor}}>
-            
-              <Animated.View style={[styles.header, summaryBlockStyle ]}>
-                <Ionicons name="ios-download-outline" size={50} color={COLORS.fontColor}  />
-                <Text style={{fontSize: 30, color: COLORS.fontColor, paddingTop: 8,}}>Download Form</Text>
-              </Animated.View>
-
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  paddingHorizontal: 15,
-                  paddingVertical:8,
-                  color: "#f7f2e4",
-                }}
-              >
-                <Animated.Text style={[styles.title, titleBlockStyle]}> Download </Animated.Text>
-                <Ionicons name="search-outline" size={24} color={COLORS.fontColor} />
-                
-
-              </View>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                paddingHorizontal: 15,
+                paddingVertical:8,
+                color: "#f7f2e4",
+              }}
+            >
+              <Animated.Text style={[styles.title, titleBlockStyle]}> Download </Animated.Text>
+              <Ionicons name="search-outline" size={24} color={COLORS.fontColor} />
               
-              <Animated.FlatList
-                data={formList}
-                scrollEventThrottle={16}
-                renderItem={({item}) => (
-                    <Item item={item}></Item>
-                )}
-                keyExtractor={item => item.formID}
-                onScroll={onScroll}
-                removeClippedSubviews
-                contentContainerStyle={styles.list_container}
-                style={styles.list}
-                onRefresh={handleRefresh}
-                refreshing={isLoading}
-                
-              />
 
-              {filesChosen ? (
-              <FAB
-                size="small"
-                title=""
-                color={COLORS.fontColor}
-                icon={<Ionicons name="ios-download-outline" size={22} color="white" />}
-                placement='right'
-                onPress={() => {
-                  console.log('do download')
-                  do_download()
-                }}
-              />
-              ):(<></>)}
+            </View>
+            
+            <Animated.FlatList
+              data={formList}
+              scrollEventThrottle={16}
+              renderItem={({item}) => (
+                  <Item item={item}></Item>
+              )}
+              keyExtractor={item => item.formID}
+              onScroll={onScroll}
+              removeClippedSubviews
+              contentContainerStyle={styles.list_container}
+              style={styles.list}
+              onRefresh={handleRefresh}
+              refreshing={isLoading}
+              
+            />
 
-          </View>
-          )
-        }
-      </SafeAreaView>
-    )
+            {filesChosen ? (
+            <FAB
+              size="small"
+              title=""
+              color={COLORS.fontColor}
+              icon={<Ionicons name="ios-download-outline" size={22} color="white" />}
+              placement='right'
+              onPress={() => {
+                console.log('do download')
+                do_download()
+              }}
+            />
+            ):(<></>)}
+
+        </View>
+        )
+      }
+    </SafeAreaView>
+  )
 }
 
 

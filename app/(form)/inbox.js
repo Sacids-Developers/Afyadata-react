@@ -1,13 +1,12 @@
 
 
-import { View, Text, StyleSheet, ActivityIndicator, Pressable, SafeAreaView,  Dimensions } from 'react-native'
+import { View, Text, StyleSheet, ActivityIndicator, Pressable, SafeAreaView,  Dimensions, FlatList } from 'react-native'
 import React, { useEffect, useState } from 'react'
 
 
 import { fetchDataAndStore, retrieveStoredData } from '../../services/updates'
 import { Link } from 'expo-router'
-
-import { Ionicons, Octicons, Entypo } from '@expo/vector-icons';
+import { Ionicons, Octicons, Entypo} from '@expo/vector-icons';
 
 import Animated, {
   Extrapolation,
@@ -17,9 +16,6 @@ import Animated, {
   useSharedValue,
 } from "react-native-reanimated";
 
-const HEADER_MAX_HEIGHT = Dimensions.get('window').height/2.6;
-const HEADER_MIN_HEIGHT = 30;
-const HEADER_SCROLL_DISTANCE = HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT;
 
 import {COLORS} from "../../constants/colors"
 
@@ -35,22 +31,39 @@ const updates = () => {
 
     language = 'en'
 
-    const Item = ({update}) => (
-      <Link href={{
-          pathname: "dynamicForm",
-          params: {
-            id: update.id,
-          },
-        }} asChild>
-        <Pressable>
-          <View style={styles.item}>
-            <View style={{padding: 10,}}>
-              <Text style={styles.item_title}>{update.title}</Text>
-            </View>
-          </View>
-        </Pressable>
-      </Link>
-    );
+    const Item = ({update, index}) => {  
+        console.log(index);
+        if(index == 0){
+          return (
+            <Text style={{
+              paddingVertical: 80, 
+              fontSize: 20, 
+              paddingHorizontal: 20, 
+              backgroundColor: "#eee",
+              marginHorizontal: 20,
+              marginTop: 20,
+              borderRadius: 20,
+              color: "maroon",
+            }}>Inbox</Text>
+          )
+        }
+        return (
+          <Link href={{
+              pathname: "dynamicForm",
+              params: {
+                id: update.id,
+              },
+            }} asChild>
+            <Pressable>
+              <View style={styles.item}>
+                <View style={{padding: 10,}}>
+                  <Text style={styles.item_title}>{update.title}</Text>
+                </View>
+              </View>
+            </Pressable>
+          </Link>
+        )
+  };
 
     useEffect(() => {
       fetchDataAndStore(language, setData, setLoading); // Fetch data when the app is online
@@ -62,29 +75,7 @@ const updates = () => {
       fetchDataAndStore(language, setData, setLoading); // Fetch data when pulled down for refresh
     };
 
-    const scrollY = useSharedValue(0);
-  
-    const onScroll = useAnimatedScrollHandler((event) => {
-      scrollY.value = event.contentOffset.y;
-    });
-
-    const summaryBlockStyle = useAnimatedStyle(() => {
-
-      return {
-        height:   interpolate(scrollY.value,[0,HEADER_MAX_HEIGHT],[HEADER_MAX_HEIGHT,HEADER_MIN_HEIGHT],Extrapolation.CLAMP),
-        //marginBottom: interpolate(scrollY.value,[0,200],[0,HEADER_MIN_HEIGHT],Extrapolation.CLAMP)
-        opacity:  interpolate(scrollY.value,[0, HEADER_SCROLL_DISTANCE / 2, HEADER_SCROLL_DISTANCE],[1, 1, 0],Extrapolation.CLAMP),
-          
-      }
-    });
-
-
-    const titleBlockStyle = useAnimatedStyle(() => {
-
-      return {
-        opacity:  interpolate(scrollY.value,[0, HEADER_SCROLL_DISTANCE / 2, HEADER_SCROLL_DISTANCE],[0, 1, 1],Extrapolation.CLAMP),     
-      }
-    });
+   
 
     return (
       <SafeAreaView style={{ flex: 1,}}>
@@ -93,34 +84,27 @@ const updates = () => {
           (              
           <View style={{ flex: 1, backgroundColor: COLORS.backgroundColor}}>
             
-              <Animated.View style={[styles.header, summaryBlockStyle ]}>
-                <Octicons name="report" size={50} color={COLORS.fontColor} />
-                <Text style={{fontSize: 30, color: COLORS.fontColor, paddingTop: 8,}}>Inbox</Text>
-              </Animated.View>
 
-            
-              <View style={styles.tab_header} >
-                <Animated.Text style={[styles.title, titleBlockStyle]}> Inbox </Animated.Text>
+              <View style={styles.header} >
+                <Text style={styles.title}> Inbox </Text>
                 <View style={{flexDirection: "row"}}>
                   <Ionicons name="filter" size={20} color={COLORS.fontColor}/>
                   <Ionicons name="search-outline" size={22} color={COLORS.fontColor}  style={{paddingHorizontal: 14}} />
                   <Entypo name="dots-three-vertical" size={16} color={COLORS.fontColor} style={{paddingTop: 3}}/>
                 </View>
               </View>
-
-
-              <Animated.FlatList
+               
+              <FlatList
                 data={data}
                 scrollEventThrottle={16}
-                renderItem={({item}) => (
-                    <Item update={item}></Item>
+                renderItem={({item, index}) => (     
+                    <Item update={item} index={index}></Item>
                 )}
                 keyExtractor={item => item.id}
-                onScroll={onScroll}
                 removeClippedSubviews
                 contentContainerStyle={styles.list_container}
                 style={styles.list}
-                onRefresh={handleRefresh}
+                //onRefresh={handleRefresh}
                 refreshing={isLoading}
                 
               />
@@ -154,20 +138,10 @@ const styles = StyleSheet.create({
   },
 
   header: {
-    height: HEADER_MAX_HEIGHT,
-    margin: 0,
-    fontSize: 50,
-    color: COLORS.fontColor,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-
-  tab_header: {
     flexDirection: "row",
     justifyContent: "space-between",
     paddingHorizontal: 15,
-    paddingVertical: 10,
+    paddingVertical:12,
     color: "#f7f2e4",
     verticalAlign: "middle",
   },
@@ -177,11 +151,9 @@ const styles = StyleSheet.create({
     margin: 0,
     padding: 0,
     backgroundColor: COLORS.backgroundColor,
-    borderRadius: 20,
   },
 
   list_container:{
-    borderRadius: 25, 
     backgroundColor: "white",
   },
   

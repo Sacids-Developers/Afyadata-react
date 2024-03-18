@@ -1,6 +1,5 @@
 import { Tabs } from "expo-router";
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Ionicons } from '@expo/vector-icons';
+import { Entypo, MaterialIcons } from '@expo/vector-icons';
 import { View, Text } from 'react-native'
 
 import * as NavigationBar from 'expo-navigation-bar';
@@ -22,6 +21,7 @@ export default function Layout() {
                 borderColor: COLORS.borderColor,
                 borderTopColor: COLORS.borderTopColor,
                 backgroundColor: COLORS.borderColor,
+                paddingHorizontal: 35,
             },
 
             tabBarActiveTintColor: COLORS.tabBarActiveTintColor,
@@ -31,22 +31,22 @@ export default function Layout() {
     > 
         <Tabs.Screen name="updates" 
             options={{
-                title: "Updates",
-                tabBarIcon: ({ focused, color, size }) => (<Text style={{ fontSize: 16, color: color}}>Updates</Text>),
+                title: "Inbox",
+                tabBarIcon: ({ focused, color, size }) => (<Text style={{ fontSize: 18, color: color}}>Inbox</Text>),
                 title: '',
             }}>
         </Tabs.Screen>
         <Tabs.Screen name="tasks"
             options={{
                 title: 'Tasks',
-                tabBarIcon: ({ focused, color, size }) => (<Text style={{ fontSize: 16, color: color}}>Tasks</Text>),
+                tabBarIcon: ({ focused, color, size }) => (<Text style={{ fontSize: 18, color: color}}>Tasks</Text>),
                 title: '',
             }}>
         </Tabs.Screen>
         <Tabs.Screen name="data"
             options={{
                 title: 'Data',
-                tabBarIcon: ({ focused, color, size }) => (<Text style={{ fontSize: 16, color: color }}>My Data</Text>),
+                tabBarIcon: ({ focused, color, size }) => (<Text style={{ fontSize: 18, color: color }}>Data</Text>),
                 title: '',
             }}>
 
@@ -54,11 +54,15 @@ export default function Layout() {
 
         <Tabs.Screen name="settings"
             options={{
-                tabBarIcon: ({focused, color, size}) => (<Ionicons name="settings-outline" size={20} color={color} />),
+                tabBarIcon: ({focused, color, size}) => (
+                    <View style={{flexDirection: "row"}}>
+                        <MaterialIcons name="menu" size={24} color="maroon" />
+                    </View>),
                 title: '',
             }}>
 
         </Tabs.Screen>
+
     </Tabs>
     );
   }

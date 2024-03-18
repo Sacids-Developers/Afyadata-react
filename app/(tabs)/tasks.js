@@ -7,7 +7,7 @@ import React, { useEffect, useState } from 'react'
 import { fetchDataAndStore, retrieveStoredData } from '../../services/updates'
 import { Link } from 'expo-router'
 
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, Entypo } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
 
 import Animated, {
@@ -101,18 +101,13 @@ const tasks = () => {
                 <Text style={{fontSize: 30, color: COLORS.fontColor, paddingTop: 8,}}>My Tasks</Text>
               </Animated.View>
 
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  paddingHorizontal: 15,
-                  paddingVertical:8,
-                  color: "#f7f2e4",
-                }}
-              >
-                <Animated.Text style={[styles.title, titleBlockStyle]}> My Tasks </Animated.Text>
-                <Ionicons name="search-outline" size={24} color={COLORS.fontColor} />
-
+              <View style={styles.tab_header} >
+                <Animated.Text style={[styles.title, titleBlockStyle]}> Tasks </Animated.Text>
+                <View style={{flexDirection: "row"}}>
+                  <Ionicons name="filter" size={20} color={COLORS.fontColor}/>
+                  <Ionicons name="search-outline" size={22} color={COLORS.fontColor}  style={{paddingHorizontal: 14}} />
+                  <Entypo name="dots-three-vertical" size={16} color={COLORS.fontColor} style={{paddingTop: 3}}/>
+                </View>
               </View>
               
               <Animated.FlatList
@@ -167,6 +162,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+
+
+  tab_header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    color: "#f7f2e4",
+    verticalAlign: "middle",
+  },
+
 
   list:{
     flex: 1,

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Text, View, input, TextInput, StyleSheet } from 'react-native'
+import { Text, View, input, TextInput, StyleSheet, Button, Alert } from 'react-native'
 import { Picker } from '@react-native-picker/picker';
 import { Dropdown, MultiSelect } from 'react-native-element-dropdown';
 import { Input, Slider } from '@rneui/base';
@@ -7,11 +7,13 @@ import { Ionicons, AntDesign, MaterialIcons, MaterialCommunityIcons, Entypo } fr
 import * as ImagePicker from 'expo-image-picker';
 import { Camera, CameraType } from 'expo-camera';
 import * as Location from 'expo-location'
+import { COLORS } from '../constants/colors';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 
 export default function FormFields(props, index, update) {
-  const [image, setImage] = useState(null)
-  const [location, setLocation] = useState(null);
+  //const [image, setImage] = useState(null)
+  //const [location, setLocation] = useState(null);
 
   //TODO: check for permission
   //const [permission, requestPermission] = Camera.useCameraPermissions();
@@ -29,8 +31,10 @@ export default function FormFields(props, index, update) {
         const { uri } = cameraResp.assets[0];
         const fileName = uri.split("/").pop();
 
-        //TODO: save image for background uploading
 
+        update(index, fileName);
+
+        //TODO: save image for background uploading
 
       }
     } catch (e) {
@@ -53,11 +57,10 @@ export default function FormFields(props, index, update) {
     }
 
     let currentLocation = await Location.getCurrentPositionAsync({});
-    
-    //TODO: save location parameters
-    setLocation(currentLocation.coords);
 
-    return currentLocation.coords;
+    loc   = currentLocation.coords.longitude + ',' + currentLocation.coords.latitude + ',' + currentLocation.coords.accuracy
+    update(index, loc);
+
   };
 
 
@@ -90,6 +93,17 @@ export default function FormFields(props, index, update) {
     )
   }
 
+  else if (props.type === 'date') {
+    return (
+      <View style={styles.item_wrp} key={index}>
+        <Text style={styles.item_label}>{props.label}</Text>
+        <Text style={styles.item_hint}>{props.hint}</Text>
+        <Button style={styles.btn} onPress={showDatepicker} title="Set Date" />
+        <Text>selected: {props.val}</Text>
+      </View>
+    )
+  }
+
   else if (props.type === 'note') {
 
     // top label of the group 
@@ -100,6 +114,7 @@ export default function FormFields(props, index, update) {
     )
   }
 
+  
 
   else if (props.type === 'text') {
     return (
@@ -119,27 +134,28 @@ export default function FormFields(props, index, update) {
       </View>
     )
   }
-
-  if (props.as === "location") {
+  else if (props.type === "geopoint") {
     return (
       <View style={styles.item_wrp} key={index}>
         <Text style={styles.item_label}>{props.label}</Text>
-        <Button title="Get Location" onPress={getLocation} />
+        <Text>{props.val} </Text>
+        <Button  style={styles.btn} title="Get Location" onPress={getLocation} />
       </View>
     )
   }
 
-  if (props.as === "image") {
+  else if (props.type === "photo") {
     return (
       <View style={styles.item_wrp} key={index}>
         <Text style={styles.item_label}>{props.label} </Text>
-        <Button title="Pick Image" onPress={takePhoto} />
-        {image && <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />}
+        <View style={styles.btn} ><Button title="Pick Image" color={COLORS.tabBarActiveTintColor} onPress={takePhoto} /></View>
       </View>
     )
   }
 
-  if (props.as === "video") {
+  //{image && <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />}
+
+  else if (props.as === "video") {
     return (
       <View style={styles.item_wrp} key={index}>
         <Text style={styles.item_label}>{props.label} </Text>
@@ -340,7 +356,13 @@ const styles = StyleSheet.create({
     padding: 10,
   },
 
-
+  btn: {
+    height: 40,
+    margin: 12,
+    borderWidth: 1,
+    backgroundColor: COLORS.backgroundColor,
+    padding: 10,
+  },
 
   dropdown: {
     height: 40,

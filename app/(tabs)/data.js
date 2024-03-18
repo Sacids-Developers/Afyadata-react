@@ -3,6 +3,7 @@
 import { View, Text, StyleSheet, ActivityIndicator, Pressable, SafeAreaView,  Dimensions, Touchable, Button, Alert } from 'react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
+
 import * as FileSystem from 'expo-file-system';
 
 import { fetchDataAndStore, retrieveStoredData } from '../../services/updates'
@@ -74,7 +75,7 @@ const data = () => {
         FileSystem.readAsStringAsync(PATH.form_data+val).then(
           (xForm) =>{
             let tForm = JSON.parse(xForm)
-            console.log(tForm.meta.name)
+            console.log(tForm.meta)
             let tmp = {
               "file_name": val,
               "form_name": tForm.meta.name,
@@ -82,6 +83,7 @@ const data = () => {
               "version":  tForm.meta.version,
               "status":  tForm.meta.status,
               "uuid":  tForm.meta.uuid,
+              "title":  tForm.meta.title,
             }
             files.push(tmp);
           }
@@ -90,7 +92,6 @@ const data = () => {
         )  
       
       });
-      console.log(files)
       setData(files)
       setLoading(false)
 
@@ -100,12 +101,11 @@ const data = () => {
     const Item = ({item}) => (
         <Pressable onPress={getLinkAction(item)}>
           <View style={styles.item}>
-            <View style={{padding: 8,}}>
-              <Text style={{fontSize: 16,color: "black"}}>{item.formID}</Text>
-              <Text style={{fontSize: 14, color: "#444",}}>{item.form_name}</Text>
-              <View style={{flexDirection: "row", justifyContent: "space-between"}}>
-                <Text style={{fontSize: 13, color: getTextColor(item.status),}}>{item.status.toUpperCase()}</Text>
-                <Text style={{fontSize: 13, color: "#aaa",}}> created on</Text>
+            <View style={{flexDirection: "row"}}>
+              <View style={[styles.icon, {backgroundColor: getTextColor(item.status)} ]}><Text style={{color: "white", fontSize: 20}}>{item.status.toUpperCase()[0]}</Text></View>
+              <View style={{paddingLeft: 15,}}>
+                <Text style={{fontSize: 15,color: "black" }}>{item.title} date </Text>
+                <Text style={{fontSize: 12, color: "#aaa",}}>{item.uuid}</Text>
               </View>
             </View>
           </View>
@@ -185,21 +185,13 @@ const data = () => {
                 <Text style={{fontSize: 30, color: COLORS.fontColor, paddingTop: 8,}}>Reported Data</Text>
               </Animated.View>
 
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  paddingHorizontal: 15,
-                  paddingVertical:8,
-                  color: "#f7f2e4",
-                }}
-              >
+              <View style={styles.tab_header} >
                 <Animated.Text style={[styles.title, titleBlockStyle]}> My Data </Animated.Text>
                 <View style={{flexDirection: "row"}}>
-                  <Ionicons name="search-outline" size={24} color={COLORS.fontColor} />
-                  <MaterialCommunityIcons name="dots-vertical" size={23} color={COLORS.fontColor} onPress={() => handleBSOpenPress()} />
+                  <Ionicons name="filter" size={20} color={COLORS.fontColor}/>
+                  <Ionicons name="search-outline" size={22} color={COLORS.fontColor}  style={{paddingHorizontal: 14}} />
+                  <Entypo name="dots-three-vertical" size={16} color={COLORS.fontColor} style={{paddingTop: 3}} onPress={() => handleBSOpenPress()} />
                 </View>
-
               </View>
               
               <Animated.FlatList
@@ -289,7 +281,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   item: {
-    paddingVertical: 0,
+    paddingVertical: 10,
     paddingHorizontal: 15,
     borderBottomWidth: 1,
     borderColor: COLORS.backgroundColor,
@@ -301,6 +293,16 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
 
+  icon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "maroon",
+    color: "white",
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
   header: {
     height: HEADER_MAX_HEIGHT,
     margin: 0,
@@ -309,6 +311,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+
+
+  tab_header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    color: "#f7f2e4",
+    verticalAlign: "middle",
+  },
+
 
   list:{
     flex: 1,
