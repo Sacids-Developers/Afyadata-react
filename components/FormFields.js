@@ -12,7 +12,6 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function FormFields(props, index, update, formLang) {
   
-  console.log('hapa tupo na lugha '+formLang)
   //const [image, setImage] = useState(null)
   //const [location, setLocation] = useState(null);
 

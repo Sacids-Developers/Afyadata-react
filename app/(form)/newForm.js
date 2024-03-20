@@ -8,7 +8,7 @@ import { Link, router } from 'expo-router';
 import * as Crypto from 'expo-crypto';
 import * as FileSystem from 'expo-file-system';
 
-import { MaterialCommunityIcons, Entypo } from '@expo/vector-icons';
+import { MaterialCommunityIcons, MaterialIcons, Entypo } from '@expo/vector-icons';
 
 import { useLocalSearchParams, useNavigation } from 'expo-router'
 import { PATH } from '../../constants/global';
@@ -27,6 +27,7 @@ const newForm = () => {
   const [page, setPage]   = useState(0)
   const [totalPages, setTotalPages] = useState(0)
   const [formLang, setFormLang] = useState('')
+  const [langOptions, setLangOptions] = useState([])
 
 
     // Bottom Sheet
@@ -110,10 +111,10 @@ const newForm = () => {
     let prev = <View></View>;
     let next = <View></View>;
     if( page < totalPages ){
-      next = <Button onPress={nextPage} title="Next Page" color="#841584" />
+      next = <MaterialIcons name="navigate-next" size={36} color="black"  onPress={nextPage} />
     }
     if( page > 0 ){
-      prev = <Button onPress={prevPage} title="Prev Page" color="#841584" />
+      prev = <MaterialIcons name="navigate-before" size={36} color="black" onPress={prevPage}  />
     }
 
     return (
@@ -134,7 +135,8 @@ const newForm = () => {
         let tForm = JSON.parse(xForm)
         setForm(tForm)
         setTotalPages(tForm.pages.length)
-        setFormLang('::English') //+tForm['meta']['default_language'])
+        setFormLang('::'+tForm['meta']['default_language'])
+        setLangOptions(tForm['languages'])
       }
     ).catch(
       (e) => {console.log(e)}
@@ -152,7 +154,6 @@ const newForm = () => {
   //setTotalPages(mForm.pages.length)
   //setFormLang('::')+mForm['meta']['default_language'])
   console.log(page,' - ',totalPages)
-  console.log(formLang)
 
   let myFormData = []
   if(page < totalPages){
@@ -163,6 +164,15 @@ const newForm = () => {
     }
   }
 
+  let languageBSChoice = []
+  for(const k in langOptions){
+    console.log('BS ',k)
+    languageBSChoice.push(
+      <Pressable onPress={() => updateLanguage("::"+langOptions[k] ) } style={styles.bs_item_wrp} key={k} >
+        <Text>{langOptions[k]}</Text> 
+      </Pressable>
+    )
+  }
   
 
   return (
@@ -221,14 +231,8 @@ const newForm = () => {
         enablePanDownToClose={true}
       >
         <View style={styles.bs_wrp}>
-
-          <Pressable onPress={() => updateLanguage("::English") } style={styles.bs_item_wrp} >
-            <Text>English</Text> 
-          </Pressable>
-
-          <Pressable onPress={() => updateLanguage("::Swahili")} style={styles.bs_item_wrp} >
-            <Text>Swahili</Text> 
-          </Pressable>
+          
+          {languageBSChoice}
 
           <Pressable onPress={() => bottomSheetRef.current?.close() } style={styles.bs_item_wrp} >
             <View style={{flexDirection: "row"}}>
@@ -262,6 +266,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10, 
     borderRadius: 20,
     backgroundColor: "transparent",
-  }
+  },
+
+  bs_item_wrp:{
+    paddingVertical: 11,
+    paddingHorizontal:15,
+    borderBottomWidth: 1,
+    borderColor: "#ccc",
+  },
+
+  bs_item_element: {
+    paddingHorizontal:15,
+    color: "#333",
+    fontSize: 18,
+  },
+
+  bs_item_cancel: {
+    color: COLORS.fontColor,
+  },
+
+  bs_wrp:{
+    flex: 1, 
+    borderTopLeftRadius: 20, 
+    borderTopRightRadius: 20, 
+    paddingTop:20,
+  },
+
 
 })
