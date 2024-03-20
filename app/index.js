@@ -26,6 +26,7 @@ export default function index() {
   
   useEffect(() => {
     createDirectory('DEFN');
+    createDirectory('TASKS');
     createDirectory('DATA');
     createDirectory('MEDIA');
   }, []);

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Text, View, input, TextInput, StyleSheet, Button, Alert } from 'react-native'
-import { Picker } from '@react-native-picker/picker';
 import { Dropdown, MultiSelect } from 'react-native-element-dropdown';
 import { Input, Slider } from '@rneui/base';
 import { Ionicons, AntDesign, MaterialIcons, MaterialCommunityIcons, Entypo } from '@expo/vector-icons';
@@ -11,7 +10,9 @@ import { COLORS } from '../constants/colors';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 
-export default function FormFields(props, index, update) {
+export default function FormFields(props, index, update, formLang) {
+  
+  console.log('hapa tupo na lugha '+formLang)
   //const [image, setImage] = useState(null)
   //const [location, setLocation] = useState(null);
 
@@ -20,6 +21,7 @@ export default function FormFields(props, index, update) {
 
   //capturing photo
   const takePhoto = async () => {
+
     try {
       const cameraResp = await ImagePicker.launchCameraAsync({
         allowsEditing: true,
@@ -64,23 +66,22 @@ export default function FormFields(props, index, update) {
   };
 
 
-
-
   //returning view
   if (props.type === 'group') {
 
     // top label of the group 
     return (
       <View style={styles.item_wrp} key={index}>
-        <Text style={styles.group_label}>{props.label}</Text>
+        <Text style={styles.group_label}>{props['label'+formLang]}</Text>
+        {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
       </View>
     )
   }
   else if (props.type === 'integer') {
     return (
       <View style={styles.item_wrp} key={index}>
-        <Text style={styles.item_label}>{props.label}</Text>
-        <Text style={styles.item_hint}>{props.hint}</Text>
+        <Text style={styles.item_label}>{props['label'+formLang]}</Text>
+        {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
         <TextInput
           inputMode="numeric"
           style={styles.input}
@@ -96,9 +97,9 @@ export default function FormFields(props, index, update) {
   else if (props.type === 'date') {
     return (
       <View style={styles.item_wrp} key={index}>
-        <Text style={styles.item_label}>{props.label}</Text>
-        <Text style={styles.item_hint}>{props.hint}</Text>
-        <Button style={styles.btn} onPress={showDatepicker} title="Set Date" />
+        <Text style={styles.item_label}>{props['label'+formLang]}</Text>
+        {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
+        <Button style={styles.btn} onPress={getLocation} title="Set Date" />
         <Text>selected: {props.val}</Text>
       </View>
     )
@@ -109,24 +110,23 @@ export default function FormFields(props, index, update) {
     // top label of the group 
     return (
       <View style={styles.item_wrp} key={index}>
-        <Text style={styles.note_label}>{props.label}</Text>
+        <Text style={styles.note_label}>{props['label'+formLang]}</Text>
+        {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
       </View>
     )
   }
 
-  
-
   else if (props.type === 'text') {
     return (
       <View style={styles.item_wrp} key={index}>
-        <Text style={styles.item_label}>{props.label}</Text>
-        <Text style={styles.item_hint}>{props.hint}</Text>
+        <Text style={styles.item_label}>{props['label'+formLang]}</Text>
+        {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
         <TextInput
           multiline={true}
           numberOfLines={5}
           //textAlignVertical={'top'}
           style={styles.input}
-          placeholder={props.label}
+          placeholder={props['label'+formLang]}
           name={props.name}
           value={props.val}
           onChangeText={(e) => { update(index, e); }}
@@ -137,17 +137,19 @@ export default function FormFields(props, index, update) {
   else if (props.type === "geopoint") {
     return (
       <View style={styles.item_wrp} key={index}>
-        <Text style={styles.item_label}>{props.label}</Text>
+        <Text style={styles.item_label}>{props['label'+formLang]}</Text>
+        {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
         <Text>{props.val} </Text>
         <Button  style={styles.btn} title="Get Location" onPress={getLocation} />
       </View>
     )
   }
 
-  else if (props.type === "photo") {
+  else if (props.type === "image") {
     return (
       <View style={styles.item_wrp} key={index}>
-        <Text style={styles.item_label}>{props.label} </Text>
+        <Text style={styles.item_label}>{props['label'+formLang]} </Text>
+        {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
         <View style={styles.btn} ><Button title="Pick Image" color={COLORS.tabBarActiveTintColor} onPress={takePhoto} /></View>
       </View>
     )
@@ -155,10 +157,11 @@ export default function FormFields(props, index, update) {
 
   //{image && <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />}
 
-  else if (props.as === "video") {
+  else if (props.type === "video") {
     return (
       <View style={styles.item_wrp} key={index}>
-        <Text style={styles.item_label}>{props.label} </Text>
+        <Text style={styles.item_label}>{props['label'+formLang]} </Text>
+        {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
         <Button title="Record Video" onPress={recordVideo} />
       </View>
     )
@@ -167,12 +170,12 @@ export default function FormFields(props, index, update) {
   else if (props.type === 'password') {
     return (
       <View style={styles.item_wrp} key={index}>
-        <Text style={styles.item_label}>{props.label}</Text>
-        <Text style={styles.item_hint}>{props.hint}</Text>
+        <Text style={styles.item_label}>{props['label'+formLang]}</Text>
+        {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
         <TextInput
           secureTextEntry={true}
           style={styles.input}
-          placeholder={props.label}
+          placeholder={props['label'+formLang]}
           value={props.val}
           onChange={(e) => { update(index, e.nativeEvent.text) }}
         />
@@ -183,12 +186,12 @@ export default function FormFields(props, index, update) {
   else if (props.type === 'email') {
     return (
       <View style={styles.item_wrp} key={index}>
-        <Text style={styles.item_label}>{props.label}</Text>
-        <Text style={styles.item_hint}>{props.hint}</Text>
+        <Text style={styles.item_label}>{props['label'+formLang]}</Text>
+        {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
         <TextInput
           inputMode="email"
           style={styles.input}
-          placeholder={props.label}
+          placeholder={props['label'+formLang]}
           value={props.val}
           onChangeText={text => update(index, text)}
         />
@@ -204,8 +207,8 @@ export default function FormFields(props, index, update) {
     let p = props.parameters
     return (
       <View style={styles.item_wrp} key={index}>
-        <Text style={styles.item_label}>{props.label}</Text>
-        <Text style={styles.item_hint}>{props.hint}</Text>
+        <Text style={styles.item_label}>{props['label'+formLang]}</Text>
+        {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
         <Slider
           value={props.val}
           onValueChange={text => update(index, text)}
@@ -224,9 +227,9 @@ export default function FormFields(props, index, update) {
 
     const renderItem = item => {
       return (
-        <View style={styles.item}>
-          <Text style={styles.textItem}>{item.label}</Text>
-          {item.value === props.val && (
+        <View style={styles.select_item_wrp}>
+          <Text style={styles.select_item_text}>{item['label'+formLang]}</Text>
+          {item.name === props.val && (
             <AntDesign
               style={styles.icon}
               color="black"
@@ -240,10 +243,10 @@ export default function FormFields(props, index, update) {
 
     return (
       <View style={styles.item_wrp} key={index}>
-        <Text style={styles.item_label}>{props.label}</Text>
-        <Text style={styles.item_hint}>{props.hint}</Text>
+        <Text style={styles.item_label}>{props['label'+formLang]}</Text>
+        {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
         <Dropdown
-          style={styles.dropdown}
+          style={styles.input}
           placeholderStyle={styles.placeholderStyle}
           selectedTextStyle={styles.selectedTextStyle}
           inputSearchStyle={styles.inputSearchStyle}
@@ -251,8 +254,8 @@ export default function FormFields(props, index, update) {
           data={props.options}
           search
           maxHeight={300}
-          labelField="label"
-          valueField="value"
+          labelField={"label"+formLang}
+          valueField="name"
           placeholder="Select item"
           searchPlaceholder="Search..."
           value={props.val}
@@ -269,23 +272,23 @@ export default function FormFields(props, index, update) {
 
 
 
-  if (props.as === 'select') {
+  if (props.type === 'select' || props.type === 'select_multiple') {
 
 
     return (
       <View style={styles.item_wrp} key={index}>
-        <Text style={styles.item_label}>{props.label}</Text>
-        <Text style={styles.item_hint}>{props.hint}</Text>
+        <Text style={styles.item_label}>{props['label'+formLang]}</Text>
+        {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
         <MultiSelect
-          style={styles.dropdown}
+          style={styles.input}
           placeholderStyle={styles.placeholderStyle}
           selectedTextStyle={styles.selectedTextStyle}
           inputSearchStyle={styles.inputSearchStyle}
           iconStyle={styles.iconStyle}
           search
           data={props.options}
-          labelField="label"
-          valueField="value"
+          labelField={'label'+formLang}
+          valueField="name"
           placeholder="Select item"
           searchPlaceholder="Search..."
           value={props.val}
@@ -301,9 +304,9 @@ export default function FormFields(props, index, update) {
 
     return (
       <View style={styles.item_wrp} key={index}>
-        <Text style={styles.item_label}>{props.label}</Text>
-        <Text style={styles.item_label}>{props.hint}</Text>
-        <TextInput style={styles.input} placeholder={props.label} name={props.name} value={props.val} onChangeText={(e) => { update(index, e); }} />
+        <Text style={styles.item_label}>{props['label'+formLang]}</Text>
+        {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
+        <TextInput style={styles.input} placeholder={props['label'+formLang]} name={props.name} value={props.val} onChangeText={(e) => { update(index, e); }} />
       </View>
     )
 
@@ -331,7 +334,7 @@ const styles = StyleSheet.create({
 
   group_label: {
     fontSize: 18,
-    color: "maroon",
+    color: COLORS.fontColor,
   },
 
 
@@ -344,15 +347,15 @@ const styles = StyleSheet.create({
   item_input: {
     fontSize: 18,
     borderWidth: 1,
-    borderColor: "gray",
+    borderColor: COLORS.borderColor,
     paddingVertical: 3,
-
   },
   input: {
     height: 40,
-    margin: 12,
+    marginVertical: 4,
     borderWidth: 1,
-    borderColor: "gray",
+    fontSize: 18,
+    borderColor: COLORS.borderColor,
     padding: 10,
   },
 
@@ -360,17 +363,18 @@ const styles = StyleSheet.create({
     height: 40,
     margin: 12,
     borderWidth: 1,
+    borderColor: COLORS.borderColor,
     backgroundColor: COLORS.backgroundColor,
     padding: 10,
   },
 
-  dropdown: {
+  input: {
     height: 40,
-    backgroundColor: 'transparent',
-    borderColor: 'gray',
-    margin: 12,
-    padding: 2,
+    marginVertical: 4,
     borderWidth: 1,
+    borderColor: COLORS.borderColor,
+    padding: 10,
+    backgroundColor: 'transparent',
   },
   placeholderStyle: {
     fontSize: 16,
@@ -393,6 +397,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
 
+  select_item_text: {
+    paddingVertical: 3,
+    paddingHorizontal:2,
+  },
+  select_item_wrp:{
+    paddingVertical: 3,
+  },
 
 
 });

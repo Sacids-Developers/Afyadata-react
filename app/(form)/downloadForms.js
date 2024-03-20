@@ -149,7 +149,7 @@ const downloadForms = () => {
         checkedColor={COLORS.fontColor}
         onPress={() => {
           const items = [...formList] // <-- shallow copy to show we're not mutating state
-          const currentItemIndex = items.findIndex(v => v.formID === item.formID) // <-- lookup by something unique on the item like an ID. It's better to lookup rather than assume the array indexes are ordered the same.
+          const currentItemIndex = items.findIndex(v => v.id === item.id) // <-- lookup by something unique on the item like an ID. It's better to lookup rather than assume the array indexes are ordered the same.
           items[currentItemIndex].checked = !items[currentItemIndex].checked
           setFormList(items);
           handleCheck();
@@ -223,7 +223,7 @@ const downloadForms = () => {
               renderItem={({item}) => (
                   <Item item={item}></Item>
               )}
-              keyExtractor={item => item.formID}
+              keyExtractor={item => item.id}
               onScroll={onScroll}
               removeClippedSubviews
               contentContainerStyle={styles.list_container}

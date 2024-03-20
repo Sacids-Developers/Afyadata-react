@@ -12,7 +12,7 @@ export const PATH = {
 
 export const URL = {
 
-    form_list: 'http://192.168.242.174:8000/form_list',
-    form_submit: 'http://192.168.242.174:8000/form_submit',
+    form_list: 'http://192.168.1.100:8000/form_list',
+    form_submit: 'http://192.168.1.100:8000/form_submit',
   
 };

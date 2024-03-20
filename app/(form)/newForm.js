@@ -1,6 +1,6 @@
 
-import { Text, View, TextInput, Button, TouchableHighlight, StyleSheet } from 'react-native'
-import React, { useEffect, useLayoutEffect, useState } from 'react'
+import { Text, View, TextInput, Button, TouchableHighlight, StyleSheet, Pressable, SafeAreaView } from 'react-native'
+import React, { useEffect, useLayoutEffect, useState, useCallback, useMemo, useRef} from 'react'
 import { useForm } from "react-hook-form";
 import FormFields from '../../components/FormFields';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -8,11 +8,14 @@ import { Link, router } from 'expo-router';
 import * as Crypto from 'expo-crypto';
 import * as FileSystem from 'expo-file-system';
 
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons, Entypo } from '@expo/vector-icons';
 
 import { useLocalSearchParams, useNavigation } from 'expo-router'
 import { PATH } from '../../constants/global';
 
+import BottomSheet from '@gorhom/bottom-sheet';
+
+import {COLORS} from "../../constants/colors"
 
 
 const newForm = () => {
@@ -23,9 +26,28 @@ const newForm = () => {
   const [formData, setFormData] = useState([])
   const [page, setPage]   = useState(0)
   const [totalPages, setTotalPages] = useState(0)
+  const [formLang, setFormLang] = useState('')
+
+
+    // Bottom Sheet
+    //const bottomSheetRef = useRef();
+    const bottomSheetRef = useRef(null);
+    const finalized_bottomSheetRef = useRef(null);
+    const snapPoints = useMemo(() => ['25%', '50%'], []);
+    const handleSheetChanges = useCallback((index) => {
+      console.log('handleSheetChanges', index);
+    }, []);
+    const handleBSOpenPress = () => {
+      bottomSheetRef.current?.snapToIndex(0)
+    }
 
   const navigation = useNavigation();
 
+  function updateLanguage(lang){
+    setFormLang(lang)
+    bottomSheetRef.current?.close()
+    console.log(formLang)
+  }
   function update(index, newValue) {
     const nForm = {...mForm} // shallow copy
 
@@ -75,8 +97,6 @@ const newForm = () => {
     event.preventDefault();
 
     // perform validation on current page
-
-
     setPage(page+1)
   }
 
@@ -107,13 +127,14 @@ const newForm = () => {
   useEffect(() => {
     
     const file_path = ( new_form === "1" ? PATH.form_defn+form_fn : PATH.form_data+form_fn );
-    console.log(file_path)
+    //console.log(file_path)
     
     FileSystem.readAsStringAsync(file_path).then(
       (xForm) =>{
         let tForm = JSON.parse(xForm)
         setForm(tForm)
         setTotalPages(tForm.pages.length)
+        setFormLang('::English') //+tForm['meta']['default_language'])
       }
     ).catch(
       (e) => {console.log(e)}
@@ -124,19 +145,25 @@ const newForm = () => {
   useLayoutEffect(() => {
     navigation.setOptions({
       title: 'Fill New Forms ',
+      headerRight: () => <Entypo name="dots-three-vertical" size={16} color={COLORS.fontColor} style={{paddingTop: 3}} onPress={() => handleBSOpenPress()} />, 
     });
   }, [navigation]);
 
+  //setTotalPages(mForm.pages.length)
+  //setFormLang('::')+mForm['meta']['default_language'])
   console.log(page,' - ',totalPages)
+  console.log(formLang)
 
   let myFormData = []
   if(page < totalPages){
-    myFormData.push(FormFields(mForm.pages[page],page,0))
+    myFormData.push(FormFields(mForm.pages[page],page,0,formLang))
     for (const key in mForm.pages[page].fields){
-      myFormData.push(FormFields(mForm.pages[page].fields[key], key, update))
+      console.log(key, formLang)
+      myFormData.push(FormFields(mForm.pages[page].fields[key], key, update, formLang))
     }
   }
 
+  
 
   return (
     <>
@@ -184,6 +211,35 @@ const newForm = () => {
 
         )
       }
+
+      <BottomSheet
+        ref={bottomSheetRef}
+        index={-1}
+        snapPoints={snapPoints}
+        onChange={handleSheetChanges}
+        backgroundStyle={{backgroundColor: "#ddd"}}
+        enablePanDownToClose={true}
+      >
+        <View style={styles.bs_wrp}>
+
+          <Pressable onPress={() => updateLanguage("::English") } style={styles.bs_item_wrp} >
+            <Text>English</Text> 
+          </Pressable>
+
+          <Pressable onPress={() => updateLanguage("::Swahili")} style={styles.bs_item_wrp} >
+            <Text>Swahili</Text> 
+          </Pressable>
+
+          <Pressable onPress={() => bottomSheetRef.current?.close() } style={styles.bs_item_wrp} >
+            <View style={{flexDirection: "row"}}>
+              <MaterialCommunityIcons name="close-box-outline" size={26} color={COLORS.fontColor} />
+              <Text style={[styles.bs_item_element, styles.bs_item_cancel]}>CLOSE</Text>
+            </View>
+          </Pressable>
+
+
+        </View>
+      </BottomSheet>
     </>
   )
 

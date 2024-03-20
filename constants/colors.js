@@ -5,7 +5,7 @@ const baseColor   = "#fcfcfc"
 
 export const COLORS = {
 
-  borderColor: baseColor,
+  borderColor: "#ddd",
   borderTopColor: baseColor,
   backgroundColor: baseColor,
   tabBarActiveTintColor: "black",

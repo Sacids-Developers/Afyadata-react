@@ -5,6 +5,8 @@ import React, { useEffect, useState } from 'react'
 
 
 import { fetchDataAndStore, retrieveStoredData } from '../../services/updates'
+import { getUpdates } from '../../services/cpb'
+
 import { Link } from 'expo-router'
 
 import { Ionicons, Octicons, Entypo } from '@expo/vector-icons';
@@ -26,12 +28,12 @@ import {COLORS} from "../../constants/colors"
 
 import { useStoreState } from 'pullstate';
 import { state } from '../../stores/state';
-
+import { useQuery } from '@tanstack/react-query';
 
 const updates = () => {
 
-    const [data, setData] = useState([])
-    const [isLoading, setLoading] = useState(false)
+  const {isPending, isError, data, error} = useQuery({ queryKey: ['movies2'], queryFn: getUpdates })
+
 
     language = 'en'
 
@@ -51,16 +53,6 @@ const updates = () => {
         </Pressable>
       </Link>
     );
-
-    useEffect(() => {
-      fetchDataAndStore(language, setData, setLoading); // Fetch data when the app is online
-      retrieveStoredData(setData, setLoading); // Retrieve stored data when the app is offline
-    }, []);
-
-    const handleRefresh = () => {
-      setLoading(true); // Set refreshing to true to show the loading indicator
-      fetchDataAndStore(language, setData, setLoading); // Fetch data when pulled down for refresh
-    };
 
     const scrollY = useSharedValue(0);
   
@@ -86,11 +78,24 @@ const updates = () => {
       }
     });
 
+
+    if (isPending) {
+      return (
+        <SafeAreaView style={{ flex: 1,}}>
+          <ActivityIndicator  size="large" color="#0000ff" />
+        </SafeAreaView>)
+    }
+  
+    if (isError) {
+      return (
+        <SafeAreaView style={{ flex: 1,}}>
+          <Text>Error: {error.message}</Text>
+        </SafeAreaView>)
+    }
+
     return (
       <SafeAreaView style={{ flex: 1,}}>
-        { isLoading ? 
-          (<ActivityIndicator  size="large" color="#0000ff" />):
-          (              
+
           <View style={{ flex: 1, backgroundColor: COLORS.backgroundColor}}>
             
               <Animated.View style={[styles.header, summaryBlockStyle ]}>
@@ -120,13 +125,11 @@ const updates = () => {
                 removeClippedSubviews
                 contentContainerStyle={styles.list_container}
                 style={styles.list}
-                onRefresh={handleRefresh}
-                refreshing={isLoading}
+                //onRefresh={handleRefresh}
+                //refreshing={isLoading}
                 
               />
           </View>
-          )
-        }
       </SafeAreaView>
     )
 }

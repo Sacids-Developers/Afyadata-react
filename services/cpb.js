@@ -5,15 +5,15 @@ locale = 'en';
 BASE_URL  = "http://192.168.0.115:8000/api/v2/pages/?locale="+locale
 
 URL     = "https://reactnative.dev/movies.json"
+import axios from 'axios';
 
-export function getUpdates() {
-    return fetch(URL)
-    .then(response => response.json())
-    .then(json => {return json.movies;})
-    .catch(error => {
-      console.error(error);
-    });
-  }
+export const getUpdates = async () => {
+
+  const url   = "https://dummyjson.com/products"
+
+  const response = await axios.get(url);
+  return response.data.products;
+}
 
 
 URL_PRODUCT     = "https://dummyjson.com/products"
