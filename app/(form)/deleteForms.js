@@ -19,6 +19,12 @@ const deleteForms = () => {
 
     const {isPending, isError, data, error} = useQuery({ queryKey: ['listFormDefns3'], queryFn: () => getFilesInDirectory(PATH.form_defn) })
     
+
+    useEffect( () =>{
+        files = getFilesInDirectory(PATH.form_defn)
+    })
+
+
     if (isPending) {
         return (
             <SafeAreaView style={{ flex: 1,}}>

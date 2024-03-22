@@ -1,57 +1,28 @@
-import { StyleSheet, Text, View, Pressable, Alert } from 'react-native'
+import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import { COLORS } from '../constants/colors';
-import { router } from 'expo-router'
-
-// confirm 
-const confirmSubmission = () =>
-Alert.alert('From Submission', 'Are you sure you want to submit the form to the server', [
-  {
-    text: 'Cancel',
-    onPress: () => console.log('Cancel Pressed'),
-    style: 'cancel',
-  },
-  { 
-    text: 'OK', 
-    onPress: () => console.log('Sending Form to Server')},
-]);
+import { TouchableOpacity } from 'react-native-gesture-handler';
+import { AntDesign } from '@expo/vector-icons';
 
 
-const getLinkAction = (item) => {
-  if(item.status.toUpperCase() == "SENT"){
-    return () => router.push({
-      pathname: "../(form)/manageForm",
-      params: {
-        form_fn: item.file_name,
-      }
-    })
-  }else if(item.status.toUpperCase() == "FINALIZED"){
-    return () => confirmSubmission()
-  }else{
-    return () => router.push({
-      pathname: "../(form)/newForm",
-      params: {
-        form_fn: item.file_name,
-        new_form: "0",
-      }
-    })
-  }
-}
 
-const DataItem = ({item}) => {
-  return (
-    <Pressable onPress={getLinkAction(item)}>
-      <View style={styles.item}>
-        <View style={{flexDirection: "row"}}>
-          <View style={{paddingLeft: 0,}}>
-            <Text style={{fontSize: 15,color: "black" }}>{item.title} date </Text>
-            <Text style={{fontSize: 12, color: "#aaa",}}>{item.uuid}</Text>
-          </View>
-        </View>
+const DataItem = ({ item, onPress, onLongPress, isSelected }) => (
+  <TouchableOpacity
+    onPress={onPress}
+    onLongPress={onLongPress}
+    style={[styles.item, isSelected && styles.selectedItem]}
+  >
+    <View style={{flexDirection: "row"}}>
+      <View style={[styles.icon, isSelected && {backgroundColor: COLORS.primaryColor}]}>
+        {isSelected ? <AntDesign name="check" size={24} color="white" /> :  <Text style={{fontSize: 18}}>{item.status[0].toUpperCase()}</Text>}
       </View>
-    </Pressable>
-  )
-}
+      <View style={{paddingLeft: 0,}}>
+        <Text style={{fontSize: 15,color: "black" }}>{item.title} date </Text>
+        <Text style={{fontSize: 12, color: "#aaa",}}>{item.uuid}</Text>
+      </View>
+    </View>
+  </TouchableOpacity>
+);
 
 export default DataItem
 
@@ -60,9 +31,11 @@ const styles = StyleSheet.create({
 
   item: {
     paddingVertical: 10,
-    paddingHorizontal: 15,
+    marginVertical: 2,
+    paddingHorizontal: 10,
     borderBottomWidth: 1,
-    borderColor: COLORS.backgroundColor,
+    marginHorizontal: 10,
+    borderBottomColor: COLORS.backgroundColor,
   },
   item_title: {
     fontSize: 20,
@@ -70,5 +43,18 @@ const styles = StyleSheet.create({
   item_text: {
     fontSize: 12,
   },
+  selectedItem: {
+    backgroundColor: COLORS.secondaryColor,
+    borderRadius: 10,
+  },
+  icon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 15,
+    backgroundColor: COLORS.secondaryColor,
+    justifyContent: 'center', // Center vertically
+    alignItems: 'center', // Center horizontally
+  }
 
 })

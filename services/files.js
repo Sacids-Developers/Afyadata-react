@@ -1,7 +1,17 @@
 
 import * as FileSystem from 'expo-file-system';
 
-
+export const deleteFile = async (uri) => {
+  try {
+    // Delete the file
+    await FileSystem.deleteAsync(uri);  
+    console.log('File deleted successfully');
+    return true
+  } catch (error) {
+    console.error('Error deleting file:', error);
+    return false
+  }
+};
 
 export const getFilesInDirectory = async (path) => {
 

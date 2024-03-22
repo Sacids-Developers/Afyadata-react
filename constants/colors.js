@@ -15,6 +15,9 @@ export const COLORS = {
   headerBgColor: "#b80416",
   headerTextColor: "#fcfafa",
 
+  primaryColor: "#b80416",
+  secondaryColor: "#faedef",
+
   tabBackgroundColor: "white",
 
 };
