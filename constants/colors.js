@@ -5,12 +5,17 @@ const baseColor   = "#fcfcfc"
 
 export const COLORS = {
 
-  borderColor: "#ddd",
-  borderTopColor: baseColor,
+  borderColor: "#aaa",
+  borderTopColor: "#ccc",
   backgroundColor: baseColor,
-  tabBarActiveTintColor: "black",
-  tabBarInactiveTintColor: "#aaa",
-  fontColor: "maroon",
+  tabBarActiveTintColor: "#b80416",
+  tabBarInactiveTintColor: "#444",
+  fontColor: "#b80416",
+
+  headerBgColor: "#b80416",
+  headerTextColor: "#fcfafa",
+
+  tabBackgroundColor: "white",
 
 };
 

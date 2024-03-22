@@ -7,11 +7,12 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import * as FileSystem from 'expo-file-system';
 
 import { fetchDataAndStore, retrieveStoredData } from '../../services/updates'
-import { Link, router } from 'expo-router'
+import { Link, router, useRouter } from 'expo-router'
 
 import { Ionicons, AntDesign, MaterialIcons,MaterialCommunityIcons, Entypo} from '@expo/vector-icons';
 import { FAB } from '@rneui/themed';
 import BottomSheet from '@gorhom/bottom-sheet';
+
  
 
 import Animated, {
@@ -22,13 +23,12 @@ import Animated, {
   useSharedValue,
 } from "react-native-reanimated";
 
-const HEADER_MAX_HEIGHT = Dimensions.get('window').height/2.6;
-const HEADER_MIN_HEIGHT = 30;
-const HEADER_SCROLL_DISTANCE = HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT;
 
 import {COLORS} from "../../constants/colors"
 
 import { PATH } from '../../constants/global';
+import DataItem from '../../components/DataItem';
+import { HEADER_MAX_HEIGHT, HEADER_MIN_HEIGHT, HEADER_SCROLL_DISTANCE } from '../../constants/dimensions';
 
 
 const data = () => {
@@ -50,20 +50,7 @@ const data = () => {
     }
 
 
-    // confirm 
-    const confirmSubmission = () =>
-      Alert.alert('From Submission', 'Are you sure you want to submit the form to the server', [
-        {
-          text: 'Cancel',
-          onPress: () => console.log('Cancel Pressed'),
-          style: 'cancel',
-        },
-        { 
-          text: 'OK', 
-          onPress: () => console.log('Sending Form to Server')},
-      ]);
-
-    language = 'en'
+    
 
     _getFilesInDirectory = async() => {
       
@@ -98,46 +85,6 @@ const data = () => {
       ;
     }
 
-    const Item = ({item}) => (
-        <Pressable onPress={getLinkAction(item)}>
-          <View style={styles.item}>
-            <View style={{flexDirection: "row"}}>
-              <View style={[styles.icon, {backgroundColor: getTextColor(item.status)} ]}><Text style={{color: "white", fontSize: 20}}>{item.status.toUpperCase()[0]}</Text></View>
-              <View style={{paddingLeft: 15,}}>
-                <Text style={{fontSize: 15,color: "black" }}>{item.title} date </Text>
-                <Text style={{fontSize: 12, color: "#aaa",}}>{item.uuid}</Text>
-              </View>
-            </View>
-          </View>
-        </Pressable>
-    );
-
-    const getTextColor = (status) => {
-      if(status.toUpperCase == "SENT") return COLORS.fontColor;
-      else if(status.toUpperCase() == "FINALIZED") return "#346e43";
-      else return "#94794a"
-    }
-
-    const getLinkAction = (item) => {
-      if(item.status.toUpperCase() == "SENT"){
-        return () => router.push({
-          pathname: "../(form)/manageForm",
-          params: {
-            form_fn: item.file_name,
-          }
-        })
-      }else if(item.status.toUpperCase() == "FINALIZED"){
-        return () => confirmSubmission()
-      }else{
-        return () => router.push({
-          pathname: "../(form)/newForm",
-          params: {
-            form_fn: item.file_name,
-            new_form: "0",
-          }
-        })
-      }
-    }
 
     useEffect(() => {
       _getFilesInDirectory();
@@ -181,25 +128,23 @@ const data = () => {
           <View style={{ flex: 1, backgroundColor: COLORS.backgroundColor}}>
             
               <Animated.View style={[styles.header, summaryBlockStyle ]}>
-                <AntDesign name="database" size={50} color={COLORS.fontColor}  />
-                <Text style={{fontSize: 30, color: COLORS.fontColor, paddingTop: 8,}}>Reported Data</Text>
+                <AntDesign name="database" size={50} color={COLORS.headerTextColor}  />
+                <Text style={{fontSize: 30, color: COLORS.headerTextColor, paddingTop: 8,}}>Reported Data</Text>
               </Animated.View>
 
               <View style={styles.tab_header} >
                 <Animated.Text style={[styles.title, titleBlockStyle]}> My Data </Animated.Text>
                 <View style={{flexDirection: "row"}}>
-                  <Ionicons name="filter" size={20} color={COLORS.fontColor}/>
-                  <Ionicons name="search-outline" size={22} color={COLORS.fontColor}  style={{paddingHorizontal: 14}} />
-                  <Entypo name="dots-three-vertical" size={16} color={COLORS.fontColor} style={{paddingTop: 3}} onPress={() => handleBSOpenPress()} />
+                  <Ionicons name="filter" size={20} color={COLORS.headerTextColor}/>
+                  <Ionicons name="search-outline" size={22} color={COLORS.headerTextColor}  style={{paddingHorizontal: 14}} />
+                  <Entypo name="dots-three-vertical" size={16} color={COLORS.headerTextColor} style={{paddingTop: 3}} onPress={() => handleBSOpenPress()} />
                 </View>
               </View>
               
               <Animated.FlatList
                 data={data}
                 scrollEventThrottle={16}
-                renderItem={({item}) => (
-                    <Item item={item}></Item>
-                )}
+                renderItem={({item}) => (<DataItem item={item}></DataItem>)}
                 keyExtractor={item => item.file_name}
                 onScroll={onScroll}
                 removeClippedSubviews
@@ -210,12 +155,21 @@ const data = () => {
                 
               />
 
+              <FAB
+                size="large"
+                title=""
+                color={COLORS.fontColor}
+                icon={<AntDesign name="form" size={24} color={COLORS.headerTextColor} />}
+                placement='right'
+                onPress={() => {router.push(href='../(form)/listForms')}}
+              />
+
               <BottomSheet
                 ref={bottomSheetRef}
                 index={-1}
                 snapPoints={snapPoints}
                 onChange={handleSheetChanges}
-                backgroundStyle={{backgroundColor: "#ddd"}}
+                backgroundStyle={{backgroundColor: COLORS.backgroundColor}}
                 enablePanDownToClose={true}
               >
                 <View style={styles.bs_wrp}>
@@ -224,7 +178,7 @@ const data = () => {
                     <Pressable> 
                       <View style={{flexDirection: "row"}}>
                         <MaterialCommunityIcons name="file-document-edit-outline" size={26} color={COLORS.fontColor} />
-                        <Text style={styles.bs_item_element}>Fill Blank Form</Text>
+                        <Text style={styles.bs_item_element}>Fill New Form</Text>
                       </View>
                     </Pressable>
                   </Link>
@@ -238,11 +192,11 @@ const data = () => {
                     </Pressable>
                   </Link>
 
-                  <Link href="../(form)/listForms" style={styles.bs_item_wrp} asChild>
+                  <Link href="../(form)/deleteForms" style={styles.bs_item_wrp} asChild>
                     <Pressable> 
                       <View style={{flexDirection: "row"}}>
                         <MaterialCommunityIcons name="file-remove-outline" size={26} color={COLORS.fontColor} />
-                        <Text style={styles.bs_item_element}>Delete Empty Form</Text>
+                        <Text style={styles.bs_item_element}>Delete Form</Text>
                       </View>
                     </Pressable>
                   </Link>
@@ -251,7 +205,7 @@ const data = () => {
                     <Pressable>
                       <View style={{flexDirection: "row"}}>
                         <MaterialCommunityIcons name="file-download-outline" size={26} color={COLORS.fontColor} />
-                        <Text style={styles.bs_item_element}>Download Empty Form</Text>
+                        <Text style={styles.bs_item_element}>Download Form</Text>
                       </View>
                     </Pressable>
                   </Link>
@@ -259,7 +213,7 @@ const data = () => {
                   <Pressable onPress={() => bottomSheetRef.current?.close() } style={styles.bs_item_wrp} >
                     <View style={{flexDirection: "row"}}>
                       <MaterialCommunityIcons name="close-box-outline" size={26} color={COLORS.fontColor} />
-                      <Text style={[styles.bs_item_element, styles.bs_item_cancel]}>CLOSE</Text>
+                      <Text style={[styles.bs_item_element, styles.bs_item_cancel]}>Close</Text>
                     </View>
                   </Pressable>
 
@@ -280,34 +234,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  item: {
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderBottomWidth: 1,
-    borderColor: COLORS.backgroundColor,
-  },
-  item_title: {
-    fontSize: 20,
-  },
-  item_text: {
-    fontSize: 12,
-  },
-
-  icon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "maroon",
-    color: "white",
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
   header: {
     height: HEADER_MAX_HEIGHT,
     margin: 0,
     fontSize: 50,
-    color: COLORS.fontColor,
+    backgroundColor: COLORS.headerBgColor,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -318,8 +249,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 15,
     paddingVertical: 10,
-    color: "#f7f2e4",
+    color: COLORS.headerTextColor,
     verticalAlign: "middle",
+    backgroundColor: COLORS.headerBgColor,
   },
 
 

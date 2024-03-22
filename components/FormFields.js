@@ -333,6 +333,7 @@ const styles = StyleSheet.create({
 
   group_label: {
     fontSize: 18,
+    fontWeight: "bold",
     color: COLORS.fontColor,
   },
 
@@ -376,10 +377,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   placeholderStyle: {
-    fontSize: 16,
+    fontSize: 14,
   },
   selectedTextStyle: {
-    fontSize: 14,
+    fontSize: 12,
   },
   iconStyle: {
     width: 20,
@@ -397,11 +398,11 @@ const styles = StyleSheet.create({
   },
 
   select_item_text: {
-    paddingVertical: 3,
+    paddingVertical: 1,
     paddingHorizontal:2,
   },
   select_item_wrp:{
-    paddingVertical: 3,
+    paddingVertical: 1,
   },
 
 

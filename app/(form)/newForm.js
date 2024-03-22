@@ -4,9 +4,11 @@ import React, { useEffect, useLayoutEffect, useState, useCallback, useMemo, useR
 import { useForm } from "react-hook-form";
 import FormFields from '../../components/FormFields';
 import { ScrollView } from 'react-native-gesture-handler';
-import { Link, router } from 'expo-router';
+import { Link, Stack, router } from 'expo-router';
 import * as Crypto from 'expo-crypto';
 import * as FileSystem from 'expo-file-system';
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import Swipeable from 'react-native-gesture-handler/Swipeable';
 
 import { MaterialCommunityIcons, MaterialIcons, Entypo } from '@expo/vector-icons';
 
@@ -95,15 +97,15 @@ const newForm = () => {
   }
 
   const nextPage = (event) => { 
-    event.preventDefault();
+    //event.preventDefault();
 
     // perform validation on current page
-    setPage(page+1)
+    if(page < totalPages) setPage(page+1)
   }
 
   const prevPage = (event) => {
-    event.preventDefault();
-    setPage(page-1)
+    //event.preventDefault();
+    if(page > 1) setPage(page-1)
   }
 
   const pageLinks = () => {
@@ -111,14 +113,14 @@ const newForm = () => {
     let prev = <View></View>;
     let next = <View></View>;
     if( page < totalPages ){
-      next = <MaterialIcons name="navigate-next" size={36} color="black"  onPress={nextPage} />
+      next = <MaterialIcons name="navigate-next" size={36} color={COLORS.fontColor}  onPress={nextPage} />
     }
     if( page > 0 ){
-      prev = <MaterialIcons name="navigate-before" size={36} color="black" onPress={prevPage}  />
+      prev = <MaterialIcons name="navigate-before" size={36} color={COLORS.fontColor} onPress={prevPage}  />
     }
 
     return (
-      <View style={{flexDirection:"row",justifyContent:"space-between",borderTopColor: "#ccc", borderWidth: 1,}}>
+      <View style={{flexDirection:"row",justifyContent:"space-between",borderTopColor: COLORS.headerBgColor, borderTopWidth: 1,}}>
         {prev}
         {next}
       </View>
@@ -144,17 +146,6 @@ const newForm = () => {
   }, []);
 
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      title: 'Fill New Forms ',
-      headerRight: () => <Entypo name="dots-three-vertical" size={16} color={COLORS.fontColor} style={{paddingTop: 3}} onPress={() => handleBSOpenPress()} />, 
-    });
-  }, [navigation]);
-
-  //setTotalPages(mForm.pages.length)
-  //setFormLang('::')+mForm['meta']['default_language'])
-  console.log(page,' - ',totalPages)
-
   let myFormData = []
   if(page < totalPages){
     myFormData.push(FormFields(mForm.pages[page],page,0,formLang))
@@ -176,75 +167,89 @@ const newForm = () => {
   
 
   return (
-    <>
-      { 
-        page < totalPages ? ( 
-          <View style={{flex: 1}}>
-            <ScrollView style={{flex: 1, padding: 10, backgroundColor: "white", }}>
-              {myFormData}
-            </ScrollView>
-            <View style={{backgroundColor: "white"}}>
-              {pageLinks()}
-            </View>
-          </View>
-        ):(
-          <View style={{flex: 1}}>
-            <View style={{flex: 1, padding: 10, backgroundColor: "white", justifyContent: 'center', paddingVertical:20,}}>
+    <GestureHandlerRootView style={{flex: 1}}>
+        <SafeAreaView style={{flex: 1}}>
+          <Stack.Screen options={
+            {
+              title: 'Fill Form',
+              headerTintColor: COLORS.headerTextColor,
+              headerStyle: {
+                backgroundColor: COLORS.headerBgColor,
+              },
+              headerRight: () => <Entypo name="dots-three-vertical" size={16} color={COLORS.headerTextColor} style={{paddingTop: 3}} onPress={() => handleBSOpenPress()} />,
+            }
+          } />
+          { 
+            page < totalPages ? ( 
 
-              <View style={{}}>
-                <Text style={{fontWeight: "bold", fontSize: 20, paddingBottom: 20}}>
-                  You are at the end of 
-                </Text>
-                <View style={{flexDirection: "row", backgroundColor: "#bde1f2", borderRadius: 10, padding: 15, fontSize: 16}}>
-                  <MaterialCommunityIcons name="information-outline" size={24} color="black" />
-                  <Text style={{paddingHorizontal: 10}}>Once the message is sent, you won't have the option to make edits. To make changes, "Save as Draft" until you're prepared to send it.</Text>
+              <View style={{flex: 1}}>
+                <ScrollView style={{flex: 1, padding: 10, backgroundColor: "white", }}>
+                  {myFormData}
+                </ScrollView>
+                <View style={{backgroundColor: "white"}}>
+                  {pageLinks()}
                 </View>
               </View>
-              <View style={{flexDirection: "row", marginTop: 30, justifyContent: "space-around" }}>
-                <TouchableHighlight style={[styles.button]}>
-                  <Button 
-                    onPress={() => submitForm('draft')} 
-                    title="Save as Draft" 
-                    color="maroon" 
-                  />
-                </TouchableHighlight>
-                <TouchableHighlight style={[styles.button, {backgroundColor: "maroon"}]} >
-                  <Button
-                    onPress={() => submitForm('Finalized')} 
-                    title="Finalize Form" 
-                    color="white" 
-                  />
-                </TouchableHighlight>
+            ):(
+              <View style={{flex: 1}}>
+                <View style={{flex: 1, padding: 10, backgroundColor: "white", justifyContent: 'center', paddingVertical:20,}}>
+
+                  <View style={{}}>
+                    <Text style={{fontWeight: "bold", fontSize: 20, paddingBottom: 20}}>
+                      You are at the end of 
+                    </Text>
+                    <View style={{flexDirection: "row", backgroundColor: "#bde1f2", borderRadius: 10, padding: 15, fontSize: 16}}>
+                      <MaterialCommunityIcons name="information-outline" size={24} color="black" />
+                      <Text style={{paddingHorizontal: 10}}>Once the message is sent, you won't have the option to make edits. To make changes, "Save as Draft" until you're prepared to send it.</Text>
+                    </View>
+                  </View>
+                  <View style={{flexDirection: "row", marginTop: 30, justifyContent: "space-around" }}>
+                    <TouchableHighlight style={[styles.button]}>
+                      <Button 
+                        onPress={() => submitForm('draft')} 
+                        title="Save as Draft" 
+                        color="maroon" 
+                      />
+                    </TouchableHighlight>
+                    <TouchableHighlight style={[styles.button, {backgroundColor: "maroon"}]} >
+                      <Button
+                        onPress={() => submitForm('Finalized')} 
+                        title="Finalize Form" 
+                        color="white" 
+                      />
+                    </TouchableHighlight>
+                  </View>
+                </View>
               </View>
+
+            )
+          }
+
+          <BottomSheet
+            ref={bottomSheetRef}
+            index={-1}
+            snapPoints={snapPoints}
+            onChange={handleSheetChanges}
+            backgroundStyle={{backgroundColor: "#ddd"}}
+            enablePanDownToClose={true}
+          >
+            <View style={styles.bs_wrp}>
+              
+              {languageBSChoice}
+
+              <Pressable onPress={() => bottomSheetRef.current?.close() } style={styles.bs_item_wrp} >
+                <View style={{flexDirection: "row"}}>
+                  <MaterialCommunityIcons name="close-box-outline" size={26} color={COLORS.fontColor} />
+                  <Text style={[styles.bs_item_element, styles.bs_item_cancel]}>CLOSE</Text>
+                </View>
+              </Pressable>
+
+
             </View>
-          </View>
-
-        )
-      }
-
-      <BottomSheet
-        ref={bottomSheetRef}
-        index={-1}
-        snapPoints={snapPoints}
-        onChange={handleSheetChanges}
-        backgroundStyle={{backgroundColor: "#ddd"}}
-        enablePanDownToClose={true}
-      >
-        <View style={styles.bs_wrp}>
-          
-          {languageBSChoice}
-
-          <Pressable onPress={() => bottomSheetRef.current?.close() } style={styles.bs_item_wrp} >
-            <View style={{flexDirection: "row"}}>
-              <MaterialCommunityIcons name="close-box-outline" size={26} color={COLORS.fontColor} />
-              <Text style={[styles.bs_item_element, styles.bs_item_cancel]}>CLOSE</Text>
-            </View>
-          </Pressable>
-
-
-        </View>
-      </BottomSheet>
-    </>
+          </BottomSheet>
+        </SafeAreaView>
+      
+    </GestureHandlerRootView>
   )
 
 

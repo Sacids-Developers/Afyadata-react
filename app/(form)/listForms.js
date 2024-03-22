@@ -5,7 +5,7 @@ import React, { useEffect, useLayoutEffect, useState } from 'react'
 
 import * as FileSystem from 'expo-file-system';
 
-import { Link, router, useNavigation } from 'expo-router'
+import { Link, Stack, router, useNavigation } from 'expo-router'
 
 import { Ionicons, AntDesign, Entypo } from '@expo/vector-icons';
 import { FAB } from '@rneui/themed';
@@ -24,6 +24,7 @@ const HEADER_SCROLL_DISTANCE = HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT;
 
 import {COLORS} from "../../constants/colors"
 import {PATH, URL} from "../../constants/global"
+import { FlatList } from 'react-native';
 
 
 const listForms = () => {
@@ -105,75 +106,42 @@ const listForms = () => {
       //fetchDataAndStore(language, setData, setLoading); // Fetch data when pulled down for refresh
     };
 
-    const scrollY = useSharedValue(0);
-  
-    const onScroll = useAnimatedScrollHandler((event) => {
-      scrollY.value = event.contentOffset.y;
-    });
 
-    const summaryBlockStyle = useAnimatedStyle(() => {
-
-      return {
-        height:   interpolate(scrollY.value,[0,HEADER_MAX_HEIGHT],[HEADER_MAX_HEIGHT,HEADER_MIN_HEIGHT],Extrapolation.CLAMP),
-        //marginBottom: interpolate(scrollY.value,[0,200],[0,HEADER_MIN_HEIGHT],Extrapolation.CLAMP)
-        opacity:  interpolate(scrollY.value,[0, HEADER_SCROLL_DISTANCE / 2, HEADER_SCROLL_DISTANCE],[1, 1, 0],Extrapolation.CLAMP),
-          
-      }
-    });
-
-
-    const titleBlockStyle = useAnimatedStyle(() => {
-
-      return {
-        opacity:  interpolate(scrollY.value,[0, HEADER_SCROLL_DISTANCE / 2, HEADER_SCROLL_DISTANCE],[0, 1, 1],Extrapolation.CLAMP),     
-      }
-    });
-
+  if (isLoading) {
     return (
       <SafeAreaView style={{ flex: 1,}}>
-        { isLoading ? 
-          (<ActivityIndicator  size="large" color="#0000ff" />):
-          (              
-          <View style={{ flex: 1, backgroundColor: COLORS.backgroundColor}}>
+        <ActivityIndicator  size="large" color="#0000ff" />
+      </SafeAreaView>)
+  }
+
+  
+    return (
+      <SafeAreaView style={{ flex: 1,}}>
+        <Stack.Screen options={
+          {
+            title: 'New Form',
+            headerTintColor: COLORS.headerTextColor,
+            headerStyle: {
+              backgroundColor: COLORS.headerBgColor,
+              fontWeight: "bold",
+            },
+            //headerRight: () => <Entypo name="dots-three-vertical" size={16} color={COLORS.headerTextColor} style={{paddingTop: 3}} onPress={() => handleBSOpenPress()} />,
+          }
+        } />            
             
-              <Animated.View style={[styles.header, summaryBlockStyle ]}>
-                <Entypo name="new-message" size={50} color={COLORS.fontColor}  />
-                <Text style={{fontSize: 30, color: COLORS.fontColor, paddingTop: 8,}}>Fill Form</Text>
-              </Animated.View>
-
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  paddingHorizontal: 15,
-                  paddingVertical:8,
-                  color: "#f7f2e4",
-                }}
-              >
-                <Animated.Text style={[styles.title, titleBlockStyle]}> Fill Form </Animated.Text>
-                <Ionicons name="search-outline" size={24} color={COLORS.fontColor} />
-                
-
-              </View>
-              
-              <Animated.FlatList
-                data={data}
-                scrollEventThrottle={16}
-                renderItem={({item}) => (
-                    <Item item={item}></Item>
-                )}
-                keyExtractor={item => item.file_name}
-                onScroll={onScroll}
-                removeClippedSubviews
-                contentContainerStyle={styles.list_container}
-                style={styles.list}
-                onRefresh={handleRefresh}
-                refreshing={isLoading}
-                
-              />
-          </View>
-          )
-        }
+        <FlatList
+          data={data}
+          scrollEventThrottle={16}
+          renderItem={({item}) => (
+              <Item item={item}></Item>
+          )}
+          keyExtractor={item => item.file_name}
+          removeClippedSubviews
+          contentContainerStyle={styles.list_container}
+          style={styles.list}
+          refreshing={isLoading}
+          
+        />
       </SafeAreaView>
     )
 }
