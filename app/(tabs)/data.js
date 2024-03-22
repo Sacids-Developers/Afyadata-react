@@ -54,73 +54,71 @@ const data = () => {
 
     
 
-    _getFilesInDirectory = async() => {
-      
-      setLoading(true)
-      setError(false)
-      let files = [];
-      let dir = await FileSystem.readDirectoryAsync(PATH.form_data);
+  _getFilesInDirectory = async () => {
+    
+    setLoading(true)
+    setError(false)
+    let files = [];
+    let dir = await FileSystem.readDirectoryAsync(PATH.form_data);
 
-      dir.forEach((val, index) => {
-        // read json file
-        FileSystem.readAsStringAsync(PATH.form_data+val).then(
-          (xForm) =>{
-            let tForm = JSON.parse(xForm)
-            console.log(tForm.meta)
-            let tmp = {
-              "id": index,
-              "file_name": val,
-              "form_name": tForm.meta.name,
-              "formID": tForm.meta.id,
-              "version":  tForm.meta.version,
-              "status":  tForm.meta.status,
-              "uuid":  tForm.meta.uuid,
-              "title":  tForm.meta.title,
-            }
-            files.push(tmp);
+    dir.forEach((val, index) => {
+      // read json file
+      FileSystem.readAsStringAsync(PATH.form_data+val).then(
+        (xForm) =>{
+          let tForm = JSON.parse(xForm)
+          console.log(tForm.meta)
+          let tmp = {
+            "id": index,
+            "file_name": val,
+            "form_name": tForm.meta.name,
+            "formID": tForm.meta.id,
+            "version":  tForm.meta.version,
+            "status":  tForm.meta.status,
+            "uuid":  tForm.meta.uuid,
+            "title":  tForm.meta.title,
           }
-        ).catch(
-          (e) => {
-            console.log(e)
-            setError(true)
-          }
-          
-        )  
-      
-      });
-      setData(files)
-      setLoading(false)
+          files.push(tmp);
+        }
+      ).catch(
+        (e) => {
+          console.log(e)
+          setError(true)
+        }
+        
+      )  
+    
+    });
+    setData(files)
+    setLoading(false)
+  }
+
+  const handleRefresh = () => {
+    _getFilesInDirectory();
+    //fetchDataAndStore(language, setData, setLoading); // Fetch data when pulled down for refresh
+  };
+
+  const scrollY = useSharedValue(0);
+
+  const onScroll = useAnimatedScrollHandler((event) => {
+    scrollY.value = event.contentOffset.y;
+  });
+
+  const summaryBlockStyle = useAnimatedStyle(() => {
+
+    return {
+      height:   interpolate(scrollY.value,[0,HEADER_MAX_HEIGHT],[HEADER_MAX_HEIGHT,HEADER_MIN_HEIGHT],Extrapolation.CLAMP),
+      //marginBottom: interpolate(scrollY.value,[0,200],[0,HEADER_MIN_HEIGHT],Extrapolation.CLAMP)
+      opacity:  interpolate(scrollY.value,[0, HEADER_SCROLL_DISTANCE / 2, HEADER_SCROLL_DISTANCE],[1, 1, 0],Extrapolation.CLAMP),
+        
     }
+  });
 
+  const titleBlockStyle = useAnimatedStyle(() => {
 
-    const handleRefresh = () => {
-      setLoading(true); // Set refreshing to true to show the loading indicator
-      _getFilesInDirectory();
-      //fetchDataAndStore(language, setData, setLoading); // Fetch data when pulled down for refresh
-    };
-
-    const scrollY = useSharedValue(0);
-  
-    const onScroll = useAnimatedScrollHandler((event) => {
-      scrollY.value = event.contentOffset.y;
-    });
-
-    const summaryBlockStyle = useAnimatedStyle(() => {
-
-      return {
-        height:   interpolate(scrollY.value,[0,HEADER_MAX_HEIGHT],[HEADER_MAX_HEIGHT,HEADER_MIN_HEIGHT],Extrapolation.CLAMP),
-        //marginBottom: interpolate(scrollY.value,[0,200],[0,HEADER_MIN_HEIGHT],Extrapolation.CLAMP)
-        opacity:  interpolate(scrollY.value,[0, HEADER_SCROLL_DISTANCE / 2, HEADER_SCROLL_DISTANCE],[1, 1, 0],Extrapolation.CLAMP),
-          
-      }
-    });
-
-    const titleBlockStyle = useAnimatedStyle(() => {
-
-      return {
-        opacity:  interpolate(scrollY.value,[0, HEADER_SCROLL_DISTANCE / 2, HEADER_SCROLL_DISTANCE],[0, 1, 1],Extrapolation.CLAMP),     
-      }
-    });
+    return {
+      opacity:  interpolate(scrollY.value,[0, HEADER_SCROLL_DISTANCE / 2, HEADER_SCROLL_DISTANCE],[0, 1, 1],Extrapolation.CLAMP),     
+    }
+  });
 
   
   const confirmDeletion = () => {
@@ -139,13 +137,13 @@ const data = () => {
             fn = data[index].file_name
             console.log('deleting ....',fn)
             if(deleteFile(PATH.form_data+fn)){
-              tmp_list = data
-              tmp_list.slice(index, 1)
-              setData(tmp_list)
+              console.log('reload data')
               count++
-            } 
+            }
+
           });
 
+          _getFilesInDirectory();
           setSelectedItems([])
           console.log('Delete forms')
         }
@@ -185,23 +183,22 @@ const data = () => {
     if (selectedItems.length != 0) {
       return selectItems(item);
     }
+
     if(item.status.toUpperCase() == "SENT"){
-      return () => router.push({
+      return router.push({
         pathname: "../(form)/manageForm",
         params: {
           form_fn: item.file_name,
         }
       })
     }else if(item.status.toUpperCase() == "FINALIZED"){
-      return () => confirmSubmission()
+      return confirmSubmission()
     }else{
-
-
-      return () => router.push({
+      return router.push({
         pathname: "../(form)/newForm",
         params: {
           form_fn: item.file_name,
-          new_form: "0",
+          new_form: 0,
         }
       })
     }

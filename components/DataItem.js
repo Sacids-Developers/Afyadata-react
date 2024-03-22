@@ -17,7 +17,7 @@ const DataItem = ({ item, onPress, onLongPress, isSelected }) => (
         {isSelected ? <AntDesign name="check" size={24} color="white" /> :  <Text style={{fontSize: 18}}>{item.status[0].toUpperCase()}</Text>}
       </View>
       <View style={{paddingLeft: 0,}}>
-        <Text style={{fontSize: 15,color: "black" }}>{item.title} date </Text>
+        <Text style={{fontSize: 15,color: "black" }}>{item.title} </Text>
         <Text style={{fontSize: 12, color: "#aaa",}}>{item.uuid}</Text>
       </View>
     </View>
