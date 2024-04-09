@@ -38,7 +38,7 @@ const newForm = () => {
     const finalized_bottomSheetRef = useRef(null);
     const snapPoints = useMemo(() => ['25%', '50%'], []);
     const handleSheetChanges = useCallback((index) => {
-      console.log('handleSheetChanges', index);
+      //console.log('handleSheetChanges', index);
     }, []);
     const handleBSOpenPress = () => {
       bottomSheetRef.current?.snapToIndex(0)
@@ -49,7 +49,6 @@ const newForm = () => {
   function updateLanguage(lang){
     setFormLang(lang)
     bottomSheetRef.current?.close()
-    console.log(formLang)
   }
   function update(index, newValue) {
     const nForm = {...mForm} // shallow copy
@@ -87,7 +86,7 @@ const newForm = () => {
     nForm["meta"]["status"] = status; // update index
     setForm(nForm); // set new json
 
-    console.log(nForm)
+    //console.log(nForm)
     // save to file
     saveFormToFile(uuid,JSON.stringify(nForm))
     alert('success')
@@ -105,7 +104,7 @@ const newForm = () => {
 
   const prevPage = (event) => {
     //event.preventDefault();
-    if(page > 1) setPage(page-1)
+    if(page > 0) setPage(page-1)
   }
 
   const pageLinks = () => {
@@ -150,14 +149,12 @@ const newForm = () => {
   if(page < totalPages){
     myFormData.push(FormFields(mForm.pages[page],page,0,formLang))
     for (const key in mForm.pages[page].fields){
-      console.log(key, formLang)
       myFormData.push(FormFields(mForm.pages[page].fields[key], key, update, formLang))
     }
   }
 
   let languageBSChoice = []
   for(const k in langOptions){
-    console.log('BS ',k)
     languageBSChoice.push(
       <Pressable onPress={() => updateLanguage("::"+langOptions[k] ) } style={styles.bs_item_wrp} key={k} >
         <Text>{langOptions[k]}</Text> 

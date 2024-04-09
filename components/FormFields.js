@@ -224,6 +224,10 @@ export default function FormFields(props, index, update, formLang) {
 
   else if (props.type === 'select_one') {
 
+    if(props.options == null){
+      return (<View key={index}><Text>Error in Form at {index}</Text></View>)
+    }
+
     const renderItem = item => {
       return (
         <View style={styles.select_item_wrp}>
@@ -272,6 +276,10 @@ export default function FormFields(props, index, update, formLang) {
 
 
   if (props.type === 'select' || props.type === 'select_multiple') {
+
+    if(props.options == null){
+      return (<View key={index}><Text>Error in Form at {index}</Text></View>)
+    }
 
 
     return (

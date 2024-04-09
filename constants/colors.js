@@ -2,20 +2,23 @@ const tintColorLight = '#2f95dc';
 const tintColorDark = '#fff';
 
 const baseColor   = "#fcfcfc"
+//const priColor    = "#a83440" #852933
+const priColor    = "#852933"
+const bck = priColor
 
 export const COLORS = {
 
   borderColor: "#aaa",
-  borderTopColor: "#ccc",
+  borderTopColor: "#ddd",
   backgroundColor: baseColor,
-  tabBarActiveTintColor: "#b80416",
-  tabBarInactiveTintColor: "#444",
-  fontColor: "#b80416",
+  tabBarActiveTintColor: priColor,
+  tabBarInactiveTintColor: "#666",
+  fontColor: priColor,
 
-  headerBgColor: "#b80416",
+  headerBgColor: priColor,
   headerTextColor: "#fcfafa",
 
-  primaryColor: "#b80416",
+  primaryColor: priColor,
   secondaryColor: "#faedef",
 
   tabBackgroundColor: "white",
