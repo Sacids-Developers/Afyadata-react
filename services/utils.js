@@ -2,18 +2,15 @@ var Parser = require('expr-eval').Parser;
 var parser = new Parser();
 
 //let str = '.  >= today()'
-let str = ".>5"
+//let str = "if(${name} > 10.51, . < 18.39) and (string-length(.) > 5 or date('2015-08-01') > today())"
 
-function processVariable(variable) {
-    // Example processing function, e.g., converting the variable to uppercase
-	//console.log('var: ',variable)
+function processVariable(variable, key, fields) {
 
     if(variable === '.'){
-		return 4
-	}
-
-	if(variable == 'name'){
-		return 14
+		console.log(fields[key]['val'])
+		return fields[key]['val'] ? fields[key]['val'] : null
+	}else{
+		return fields[variable]['val']
 	}
 }
 
@@ -55,13 +52,13 @@ function getTodaysDateAsString() {
     return `${year}-${month}-${day}`;
 }
 
-function replaceVariable(input) {
+function replaceVariable(input, key, fields) {
 
     const pattern = /\$\{(\w+)\}|(?<!\d)[.]/g;
     const output = input.replace(pattern, (match, variable) => {
         // If match is a variable, process it; otherwise, return the match as is
 		if(variable == undefined ) variable = "."
-        return variable ? processVariable(variable) : '.';
+        return variable ? processVariable(variable, key, fields) : '.';
     });
 
     return output;
@@ -80,13 +77,16 @@ function replaceFunctions(input) {
 }
 
 
-// Example usage
-console.log('string', str)
-const processedString = replaceVariable(str, processVariable);
-console.log(processedString); // Output: This is a VARIABLE example
+export function validate(str, key, fields){
 
-const expression	= replaceFunctions(processedString)
-console.log(expression)
+    const processedString = replaceVariable(str, key, fields);
+    console.log("replace variable",processedString); // Output: This is a VARIABLE example
+    
+    const expression	= replaceFunctions(processedString)
+    console.log("replace function",expression)
+    
+    const result = parser.evaluate(expression);
+    console.log(result)
+    return result
+}
 
-const result = parser.evaluate(expression);
-console.log(result)

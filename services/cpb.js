@@ -10,9 +10,9 @@ import axios from 'axios';
 export const getUpdates = async () => {
 
   const url   = "https://dummyjson.com/products"
-
   const response = await axios.get(url);
   return response.data.products;
+  
 }
 
 

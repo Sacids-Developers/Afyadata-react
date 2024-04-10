@@ -18,6 +18,7 @@ import { PATH } from '../../constants/global';
 import BottomSheet from '@gorhom/bottom-sheet';
 
 import {COLORS} from "../../constants/colors"
+import { validate } from '../../services/utils';
 
 
 const newForm = () => {
@@ -50,12 +51,11 @@ const newForm = () => {
     setFormLang(lang)
     bottomSheetRef.current?.close()
   }
-  function update(index, newValue) {
+  function update(index, newValue, col_name = 'val') {
     const nForm = {...mForm} // shallow copy
 
     // perform validation
-
-    nForm["pages"][page]['fields'][index]["val"] = newValue; // update index
+    nForm["pages"][page]['fields'][index][col_name] = newValue; // update index
     setForm(nForm); // set new json
   }
 
@@ -95,11 +95,36 @@ const newForm = () => {
 
   }
 
+
+
+
   const nextPage = (event) => { 
     //event.preventDefault();
 
     // perform validation on current page
-    if(page < totalPages) setPage(page+1)
+    // nForm["pages"][page]['fields'][index]["val"]
+    let valid = true
+    fields = mForm.pages[page].fields
+    for (const key in fields){
+      let constraint = fields[key]['constraint'] 
+      if(constraint == null) continue
+      
+      // field has to have a value
+      if(fields[key]['val'] == null || fields[key]['val'] == ''){
+        valid = false
+        update(key,true,'error')
+        continue
+      }
+
+      if(!validate(constraint, key, fields)){
+        update(key,true,'error')
+        valid = false
+      }else{
+        update(key,false,'error')
+      }
+    }
+
+    if(page < totalPages && valid ) setPage(page+1)
   }
 
   const prevPage = (event) => {

@@ -89,6 +89,7 @@ export default function FormFields(props, index, update, formLang) {
           value={props.val}
           onChangeText={(e) => { update(index, e); }}
         />
+        {props.error && <Text style={styles.item_error}>{props['constraint_message'+formLang]}</Text>}
       </View>
     )
   }
@@ -338,6 +339,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontStyle: "italic",
   },
+  item_error: {
+    fontSize: 15,
+    fontStyle: "italic",
+    color: "red",
+  },
 
   group_label: {
     fontSize: 18,
@@ -350,6 +356,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontStyle: "italic",
     color: "#444",
+  },
+  note_label: {
+    fontSize: 16,
+    fontStyle: "italic",
+    color: "red",
   },
 
   item_input: {

@@ -1,6 +1,6 @@
 
 
-import { View, Text, StyleSheet, ActivityIndicator, Pressable, SafeAreaView,  Dimensions, FlatList } from 'react-native'
+import { View, Text, StyleSheet, ActivityIndicator, Pressable, SafeAreaView,  Dimensions, FlatList, Alert } from 'react-native'
 import React, { useEffect, useLayoutEffect, useState } from 'react'
 import axios from 'axios';
 
@@ -49,13 +49,34 @@ const downloadForms = () => {
   
       try {
         const { uri } = await downloadResumable.downloadAsync();
-        alert('Finished downloading to ', uri);
+        finalizeDownload();
       } catch (e) {
         console.error(e);
       }
     })
 
   }
+
+  const finalizeDownload = () => {
+    Alert.alert('Download Successful', 'Do you want to fill out new form now', [
+      {
+        text: 'No',
+        onPress: () => {
+          console.log('Cancel Pressed'),
+          router.back(),
+          router.back()
+        },
+        style: 'cancel',
+      },
+      { 
+        text: 'Yes', 
+        onPress: () => {
+          router.back()
+        }
+      },
+    ]);
+  }
+
 
 
   const handleCheckboxChange = (item) => {

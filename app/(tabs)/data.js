@@ -295,41 +295,65 @@ const data = () => {
             >
               <View style={styles.bs_wrp}>
 
-                <Link href="../(form)/listForms" style={styles.bs_item_wrp} asChild>
-                  <Pressable> 
-                    <View style={{flexDirection: "row"}}>
-                      <MaterialCommunityIcons name="file-document-edit-outline" size={26} color={COLORS.fontColor} />
-                      <Text style={styles.bs_item_element}>Fill New Form</Text>
-                    </View>
-                  </Pressable>
-                </Link>
+                <Pressable 
+                  onPress={ 
+                    () => {
+                      bottomSheetRef.current?.close();
+                      router.push('../(form)/listForms');
+                    }
+                  }
+                  style={styles.bs_item_wrp}
+                > 
+                  <View style={{flexDirection: "row"}}>
+                    <MaterialCommunityIcons name="file-document-edit-outline" size={26} color={COLORS.fontColor} />
+                    <Text style={styles.bs_item_element}>Fill New Form</Text>
+                  </View>
+                </Pressable>
 
-                <Link href="../(form)/listForms" style={styles.bs_item_wrp} asChild>
-                  <Pressable> 
-                    <View style={{flexDirection: "row"}}>
-                      <MaterialCommunityIcons name="file-send-outline" size={26} color={COLORS.fontColor} />
-                      <Text style={styles.bs_item_element}>Send Finalized Forms</Text>
-                    </View>
-                  </Pressable>
-                </Link>
+                <Pressable
+                  onPress={ 
+                    () => {
+                      bottomSheetRef.current?.close();
+                      router.push('../(form)/listForms');
+                    }
+                  }
+                  style={styles.bs_item_wrp}
+                > 
+                  <View style={{flexDirection: "row"}}>
+                    <MaterialCommunityIcons name="file-send-outline" size={26} color={COLORS.fontColor} />
+                    <Text style={styles.bs_item_element}>Send Finalized Forms</Text>
+                  </View>
+                </Pressable>
 
-                <Link href="../(form)/deleteForms" style={styles.bs_item_wrp} asChild>
-                  <Pressable> 
-                    <View style={{flexDirection: "row"}}>
-                      <MaterialCommunityIcons name="file-remove-outline" size={26} color={COLORS.fontColor} />
-                      <Text style={styles.bs_item_element}>Delete Form</Text>
-                    </View>
-                  </Pressable>
-                </Link>
+                <Pressable
+                  onPress={ 
+                    () => {
+                      bottomSheetRef.current?.close();
+                      router.push('../(form)/deleteForms');
+                    }
+                  }
+                  style={styles.bs_item_wrp}
+                > 
+                  <View style={{flexDirection: "row"}}>
+                    <MaterialCommunityIcons name="file-remove-outline" size={26} color={COLORS.fontColor} />
+                    <Text style={styles.bs_item_element}>Delete Form</Text>
+                  </View>
+                </Pressable>
 
-                <Link href="../(form)/downloadForms" style={styles.bs_item_wrp}  asChild>
-                  <Pressable>
-                    <View style={{flexDirection: "row"}}>
-                      <MaterialCommunityIcons name="file-download-outline" size={26} color={COLORS.fontColor} />
-                      <Text style={styles.bs_item_element}>Download Form</Text>
-                    </View>
-                  </Pressable>
-                </Link>
+                <Pressable
+                  onPress={ 
+                    () => {
+                      bottomSheetRef.current?.close();
+                      router.push('../(form)/downloadForms');
+                    }
+                  }
+                  style={styles.bs_item_wrp}
+                >
+                  <View style={{flexDirection: "row"}}>
+                    <MaterialCommunityIcons name="file-download-outline" size={26} color={COLORS.fontColor} />
+                    <Text style={styles.bs_item_element}>Download Form</Text>
+                  </View>
+                </Pressable>
 
                 <Pressable onPress={() => bottomSheetRef.current?.close() } style={styles.bs_item_wrp} >
                   <View style={{flexDirection: "row"}}>
