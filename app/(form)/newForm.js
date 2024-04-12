@@ -47,28 +47,31 @@ const newForm = () => {
 
   const navigation = useNavigation();
 
-  function updateLanguage(lang){
-    setFormLang(lang)
-    bottomSheetRef.current?.close()
-  }
-  function update(index, newValue, col_name = 'val') {
-    const nForm = {...mForm} // shallow copy
-
-    // perform validation
-    nForm["pages"][page]['fields'][index][col_name] = newValue; // update index
-    setForm(nForm); // set new json
-  }
-
-  const saveFormToFile = async (uid, filled_form) => {
-    
-    try {
-      await FileSystem.writeAsStringAsync(PATH.form_data+uid, filled_form);
-      console.log('String saved as file successfully.');
-    } catch (error) {
-      console.error('Error saving string as file:', error);
-    }
-
+  const updateLanguage = (selectedLang) => {
+    bottomSheetRef.current?.close();
+    setFormLang(selectedLang);
   };
+  const updateField = (fieldIndex, newValue, columnName = 'val') => {
+    const updatedForm = { ...mForm };
+    updatedForm.pages[page].fields[fieldIndex][columnName] = newValue;
+    setForm(updatedForm);
+  };
+
+  const updatePageRelevance = (pageNumber, isRelevant) => {
+    const updatedForm = { ...mForm };
+    updatedForm.pages[pageNumber].is_relevant = isRelevant;
+    setForm(updatedForm);
+  };
+
+const saveFormToFile = async (formId, formData) => {
+  try {
+    await FileSystem.writeAsStringAsync(PATH.form_data + formId, formData, {
+      encoding: FileSystem.EncodingType.UTF8,
+    });
+  } catch (error) {
+    console.error('Error saving form:', error);
+  }
+};
 
   const submitForm = (status) => {
     //event.preventDefault();
@@ -98,58 +101,126 @@ const newForm = () => {
 
 
 
-  const nextPage = (event) => { 
-    //event.preventDefault();
+const goToNextPage = (event) => {
+  let isValid = true;
+  const currentPageFields = mForm.pages[page].fields;
 
-    // perform validation on current page
-    // nForm["pages"][page]['fields'][index]["val"]
-    let valid = true
-    fields = mForm.pages[page].fields
-    for (const key in fields){
-      let constraint = fields[key]['constraint'] 
-      if(constraint == null) continue
-      
-      // field has to have a value
-      if(fields[key]['val'] == null || fields[key]['val'] == ''){
-        valid = false
-        update(key,true,'error')
-        continue
+  for (const fieldKey in currentPageFields) {
+    if (!isFieldRelevant(page, fieldKey)) continue;
+
+    const constraint = currentPageFields[fieldKey]['constraint'];
+    const isRequired = currentPageFields[fieldKey]['required'];
+
+    if (constraint == null || constraint === '' || isRequired == null || isRequired === '' || isRequired === 'no') continue;
+
+    const fieldValue = currentPageFields[fieldKey]['val'];
+    if (fieldValue == null || fieldValue === '') {
+      isValid = false;
+      updateField(fieldKey, true, 'error');
+    } else {
+      const isFieldValid = validate(constraint, fieldKey, currentPageFields);
+      updateField(fieldKey, !isFieldValid, 'error');
+      isValid = isFieldValid && isValid;
+    }
+  }
+
+  if (isValid) {
+    for (let nextPageNum = page + 1; nextPageNum <= totalPages; nextPageNum++) {
+      if(nextPageNum == totalPages){
+        setPage(nextPageNum);
+        break;
       }
-
-      if(!validate(constraint, key, fields)){
-        update(key,true,'error')
-        valid = false
-      }else{
-        update(key,false,'error')
+      if (isPageRelevant(nextPageNum)) {
+        setPage(nextPageNum);
+        break;
       }
     }
-
-    if(page < totalPages && valid ) setPage(page+1)
   }
+};
 
-  const prevPage = (event) => {
-    //event.preventDefault();
-    if(page > 0) setPage(page-1)
-  }
-
-  const pageLinks = () => {
-
-    let prev = <View></View>;
-    let next = <View></View>;
-    if( page < totalPages ){
-      next = <MaterialIcons name="navigate-next" size={36} color={COLORS.fontColor}  onPress={nextPage} />
+  const goToPreviousPage = () => {
+    let previousPageNumber = page - 1;
+    while (previousPageNumber >= 0) {
+      if (mForm.pages[previousPageNumber].is_relevant !== false) {
+        setPage(previousPageNumber);
+        break;
+      }
+      previousPageNumber--;
     }
-    if( page > 0 ){
-      prev = <MaterialIcons name="navigate-before" size={36} color={COLORS.fontColor} onPress={prevPage}  />
+  }
+
+  const isPageRelevant = (pageNumber) => {
+    const relevantExpression = mForm.pages[pageNumber]?.relevant;
+
+    if (relevantExpression === null || relevantExpression === '' || relevantExpression === undefined) {
+      updatePageRelevance(pageNumber, true);
+      return true;
     }
 
-    return (
-      <View style={{flexDirection:"row",justifyContent:"space-between",borderTopColor: COLORS.headerBgColor, borderTopWidth: 1,}}>
-        {prev}
-        {next}
-      </View>
-    )
+    const isPageRelevantBasedOnFields = validate(relevantExpression, "", getSetFields(pageNumber));
+    updatePageRelevance(pageNumber, !isPageRelevantBasedOnFields);
+    return isPageRelevantBasedOnFields;
+  };
+
+  const updateFieldRelevance = (pageNumber, fieldName) => {
+    const { fields } = mForm.pages[pageNumber];
+    const fieldRelevance = fields[fieldName]?.relevant;
+
+
+    if (fieldRelevance !== false) {
+      updateField(fieldName, true, 'is_relevant');
+      return;
+    }
+
+    const isFieldRelevant = validate(fieldRelevance, fieldName, getSetFields(pageNumber));
+    updateField(fieldName, isFieldRelevant, 'is_relevant');
+  };
+
+const isFieldRelevant = (pageNumber, fieldName) => {
+  const { fields } = mForm.pages[pageNumber];
+  const fieldRelevance = fields[fieldName]?.relevant;
+
+  if (fieldRelevance !== false) {
+    return true
   }
+  return validate(fieldRelevance, fieldName, getSetFields(pageNumber));
+
+};
+
+
+
+  const getSetFields = (currentPage) => {
+    fields  = {}
+    for(i = 0; i <= currentPage; i++){
+      for (let key in mForm.pages[i].fields) {
+        fields[key] = mForm.pages[i].fields[key];
+      }
+    }
+    //console.log(fields)
+    return fields
+  }
+
+const renderPageLinks = () => {
+  const prevButton = page > 0 ? (
+    <MaterialIcons name="navigate-before" size={36} color={COLORS.fontColor} onPress={goToPreviousPage}
+    />
+  ) : (
+    <View />
+  );
+
+  const nextButton = page < totalPages ? (
+    <MaterialIcons name="navigate-next" size={36} color={COLORS.fontColor} onPress={goToNextPage} />
+  ) : (
+    <View />
+  );
+
+  return (
+    <View style={styles.page_links}>
+      {prevButton}
+      {nextButton}
+    </View>
+  );
+};
 
   useEffect(() => {
     
@@ -172,13 +243,17 @@ const newForm = () => {
 
   let myFormData = []
   if(page < totalPages){
+
     myFormData.push(FormFields(mForm.pages[page],page,0,formLang))
-    for (const key in mForm.pages[page].fields){
-      myFormData.push(FormFields(mForm.pages[page].fields[key], key, update, formLang))
+    for (const key in mForm.pages[page].fields){ 
+      // check relevance
+      if(isFieldRelevant(page, key)){
+        myFormData.push(FormFields(mForm.pages[page].fields[key], key, updateField, formLang)) 
+      }
     }
   }
 
-  let languageBSChoice = []
+  let languageBSChoice = [] 
   for(const k in langOptions){
     languageBSChoice.push(
       <Pressable onPress={() => updateLanguage("::"+langOptions[k] ) } style={styles.bs_item_wrp} key={k} >
@@ -209,7 +284,7 @@ const newForm = () => {
                   {myFormData}
                 </ScrollView>
                 <View style={{backgroundColor: "white"}}>
-                  {pageLinks()}
+                  {renderPageLinks()}
                 </View>
               </View>
             ):(
@@ -318,6 +393,13 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20, 
     paddingTop:20,
   },
+
+  page_links: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    borderTopColor: COLORS.headerBgColor,
+    borderTopWidth: 1,
+  }
 
 
 })

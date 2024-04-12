@@ -2,7 +2,7 @@ var Parser = require('expr-eval').Parser;
 var parser = new Parser();
 
 //let str = '.  >= today()'
-let str = ".>5"
+let str = true
 
 function processVariable(variable) {
     // Example processing function, e.g., converting the variable to uppercase
@@ -81,7 +81,12 @@ function replaceFunctions(input) {
 
 
 // Example usage
-console.log('string', str)
+// check if it is a string
+if (typeof str !== 'string') {
+	// evaluate the object/boolean
+	console.log(Boolean(str))
+	return Boolean(str)
+}
 const processedString = replaceVariable(str, processVariable);
 console.log(processedString); // Output: This is a VARIABLE example
 

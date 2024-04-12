@@ -38,7 +38,11 @@ function processFunction(str, func){
 
 		case 'string-length':
 			// check if its an available field
-			return 5
+			// check if args is null
+			if(args === undefined || args === null){
+				return 0
+			}
+			return args.length
 		
 	}
 
@@ -77,7 +81,13 @@ function replaceFunctions(input) {
 }
 
 
-export function validate(str, key, fields){
+export function validate(str, key = "", fields = {}){
+
+	if (typeof str !== 'string') {
+		const result = Boolean(str)
+		console.log('not string',result)
+		return result
+	}
 
     const processedString = replaceVariable(str, key, fields);
     console.log("replace variable",processedString); // Output: This is a VARIABLE example

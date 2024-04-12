@@ -77,6 +77,7 @@ export default function FormFields(props, index, update, formLang) {
     )
   }
   else if (props.type === 'integer') {
+
     return (
       <View style={styles.item_wrp} key={index}>
         <Text style={styles.item_label}>{props['label'+formLang]}</Text>
@@ -89,7 +90,7 @@ export default function FormFields(props, index, update, formLang) {
           value={props.val}
           onChangeText={(e) => { update(index, e); }}
         />
-        {props.error && <Text style={styles.item_error}>{props['constraint_message'+formLang]}</Text>}
+        <Text style={styles.item_error}>{props.error ? props['constraint_message'+formLang] : " "}</Text>
       </View>
     )
   }
