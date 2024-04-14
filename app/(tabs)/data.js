@@ -12,6 +12,7 @@ import { Link, router, useRouter } from 'expo-router'
 import { Ionicons, AntDesign, MaterialIcons,MaterialCommunityIcons, Entypo} from '@expo/vector-icons';
 import { FAB } from '@rneui/themed';
 import BottomSheet from '@gorhom/bottom-sheet';
+import { useMutation } from '@tanstack/react-query'
 
  
 
@@ -29,6 +30,8 @@ import { PATH } from '../../constants/global';
 import DataItem from '../../components/DataItem';
 import { HEADER_MAX_HEIGHT, HEADER_MIN_HEIGHT, HEADER_SCROLL_DISTANCE } from '../../constants/dimensions';
 import { deleteFile } from '../../services/files';
+import { submitFormData } from '../../services/api';
+import { saveFormToFile } from '../../services/utils';
 
 
 const data = () => {
@@ -52,7 +55,16 @@ const data = () => {
     }
 
 
-    
+    const mutation = useMutation({
+      mutationFn: (formData) => { submitFormData(formData) },
+      onSuccess: (data) => {
+        // update article view directly via setQueryData
+        console.log('success',data)
+      },
+      onError: (error, variables, context) => {
+        console.log('error',error);
+      },
+    });
 
   _getFilesInDirectory = async () => {
     
@@ -66,12 +78,12 @@ const data = () => {
       FileSystem.readAsStringAsync(PATH.form_data+val).then(
         (xForm) =>{
           let tForm = JSON.parse(xForm)
-          console.log(tForm.meta)
+          console.log(val)
           let tmp = {
             "id": index,
             "file_name": val,
-            "form_name": tForm.meta.name,
-            "formID": tForm.meta.id,
+            "form_name": tForm.meta.title,
+            "formID": tForm.meta.form_id,
             "version":  tForm.meta.version,
             "status":  tForm.meta.status,
             "uuid":  tForm.meta.uuid,
@@ -151,7 +163,7 @@ const data = () => {
     ]);
   }
 
-  const confirmSubmission = () => {
+  const confirmSubmission = (item) => {
     Alert.alert('From Submission', 'Are you sure you want to submit the form to the server', [
       {
         text: 'Cancel',
@@ -160,8 +172,59 @@ const data = () => {
       },
       { 
         text: 'OK', 
-        onPress: () => console.log('Sending Form to Server')},
+        onPress: () => {
+          console.log('Sending Form to Server')
+          console.log(item.file_name)
+          sendFormToServer(item)
+        }
+      },
     ]);
+  }
+
+  const sendFormToServer = (item) => {
+    console.log('item',item)
+    // open file from async storage
+    const file_path = PATH.form_data+item.file_name;
+    FileSystem.readAsStringAsync(file_path).then(
+      (xForm) =>{
+        let tForm = JSON.parse(xForm)
+        // loop through tform
+        const jform     = {}
+        const formData  = new FormData()
+
+        for(const page in tForm.pages){
+          for(const field_name in tForm.pages[page]['fields']){
+            //console.log(field_name,' : ',tForm.pages[page]['fields'][field_name]['val'])
+            if(tForm.pages[page]['fields'][field_name]['type'] == "image"){
+              jform[field_name]   = tForm.pages[page]['fields'][field_name]['val']['fileName']
+              formData.append(field_name, tForm.pages[page]['fields'][field_name]['val'])
+            }else{
+              jform[field_name]   = tForm.pages[page]['fields'][field_name]['val']
+            }
+          }      
+        }
+        formData.append('data', JSON.stringify(jform))
+        formData.append('meta', JSON.stringify(tForm.meta))
+
+        response = submitFormData(formData).then(
+          (response) => {
+            if(!response){
+              tForm.meta.status = 'sent'
+              saveFormToFile(item.uuid,JSON.stringify(tForm,null,2))
+              handleRefresh()
+              return true
+            }
+            return false
+          }
+        )
+
+
+        
+      }
+    ).catch(
+      (e) => {console.log(e)}
+    )
+
   }
   
   const deSelectItems = () => {
@@ -179,7 +242,6 @@ const data = () => {
   
   const handlePress = (item) => {
 
-
     if (selectedItems.length != 0) {
       return selectItems(item);
     }
@@ -192,7 +254,7 @@ const data = () => {
         }
       })
     }else if(item.status.toUpperCase() == "FINALIZED"){
-      return confirmSubmission()
+      return confirmSubmission(item)
     }else{
       return router.push({
         pathname: "../(form)/newForm",
@@ -213,26 +275,26 @@ const data = () => {
     />
   );
 
-    useEffect(() => {
-      _getFilesInDirectory();
-    }, []);
+  useEffect(() => {
+    _getFilesInDirectory();
+  }, []);
 
 
-    if (isLoading) {
-      return (
-        <SafeAreaView style={{ flex: 1,}}>
-          <ActivityIndicator  size="large" color="#0000ff" />
-        </SafeAreaView>)
-    }
-
-    if (isError) {
-      return (
-        <SafeAreaView style={{ flex: 1,}}>
-          <Text>Error: {error.message}</Text>
-        </SafeAreaView>)
-    }
-
+  if (isLoading) {
     return (
+      <SafeAreaView style={{ flex: 1,}}>
+        <ActivityIndicator  size="large" color="#0000ff" />
+      </SafeAreaView>)
+  }
+
+  if (isError) {
+    return (
+      <SafeAreaView style={{ flex: 1,}}>
+        <Text>Error:</Text>
+      </SafeAreaView>)
+  }
+
+  return (
       <SafeAreaView style={{ flex: 1,}}>         
         <View style={{ flex: 1, backgroundColor: COLORS.backgroundColor}}>
           

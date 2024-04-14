@@ -1,6 +1,9 @@
 var Parser = require('expr-eval').Parser;
 var parser = new Parser();
 
+import * as FileSystem from 'expo-file-system';
+import { PATH } from '../constants/global';
+
 //let str = '.  >= today()'
 //let str = "if(${name} > 10.51, . < 18.39) and (string-length(.) > 5 or date('2015-08-01') > today())"
 
@@ -100,3 +103,12 @@ export function validate(str, key = "", fields = {}){
     return result
 }
 
+export const saveFormToFile = async (formId, formData) => {
+	try {
+	  await FileSystem.writeAsStringAsync(PATH.form_data + formId, formData, {
+		encoding: FileSystem.EncodingType.UTF8,
+	  });
+	} catch (error) {
+	  console.error('Error saving form:', error);
+	}
+  };

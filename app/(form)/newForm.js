@@ -18,7 +18,7 @@ import { PATH } from '../../constants/global';
 import BottomSheet from '@gorhom/bottom-sheet';
 
 import {COLORS} from "../../constants/colors"
-import { validate } from '../../services/utils';
+import { saveFormToFile, validate } from '../../services/utils';
 
 
 const newForm = () => {
@@ -63,15 +63,7 @@ const newForm = () => {
     setForm(updatedForm);
   };
 
-const saveFormToFile = async (formId, formData) => {
-  try {
-    await FileSystem.writeAsStringAsync(PATH.form_data + formId, formData, {
-      encoding: FileSystem.EncodingType.UTF8,
-    });
-  } catch (error) {
-    console.error('Error saving form:', error);
-  }
-};
+
 
   const submitForm = (status) => {
     //event.preventDefault();

@@ -16,7 +16,7 @@ import { FAB, CheckBox } from '@rneui/themed';
 import {COLORS} from "../../constants/colors"
 import {PATH, URL} from "../../constants/global"
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getForms } from '../../services/api';
+import { fetchForms } from '../../services/api';
 API_URL     = "http://127.0.0.1:8000/form_list"
 
 
@@ -106,8 +106,8 @@ const downloadForms = () => {
 
 
   const {isLoading, isError, data, error} = useQuery({ 
-    queryKey: ['getForms'], 
-    queryFn: getForms,
+    queryKey: ['fetchForms'], 
+    queryFn: fetchForms,
   })
   const queryClient = useQueryClient();
 
@@ -147,7 +147,7 @@ const downloadForms = () => {
         removeClippedSubviews
         contentContainerStyle={styles.list_container}
         style={styles.list}
-        onRefresh={() => queryClient.invalidateQueries({ queryKey: ['getForms'] })}
+        onRefresh={() => queryClient.invalidateQueries({ queryKey: ['fetchForms'] })}
         refreshing={isLoading}
         
       />

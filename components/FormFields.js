@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Text, View, input, TextInput, StyleSheet, Button, Alert } from 'react-native'
+import { Text, View, input, TextInput, StyleSheet, Button, Alert, Image } from 'react-native'
 import { Dropdown, MultiSelect } from 'react-native-element-dropdown';
 import { Input, Slider } from '@rneui/base';
 import { Ionicons, AntDesign, MaterialIcons, MaterialCommunityIcons, Entypo } from '@expo/vector-icons';
@@ -8,7 +8,7 @@ import { Camera, CameraType } from 'expo-camera';
 import * as Location from 'expo-location'
 import { COLORS } from '../constants/colors';
 import DateTimePicker from '@react-native-community/datetimepicker';
-
+import { Permissions } from 'expo';
 
 export default function FormFields(props, index, update, formLang) {
   
@@ -22,6 +22,14 @@ export default function FormFields(props, index, update, formLang) {
   const takePhoto = async () => {
 
     try {
+      // Ask the user for the permission to access the camera
+      const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+      
+      if (permissionResult.granted === false) {
+        alert("You've refused to allow this appp to access your camera!");
+        return;
+      }
+
       const cameraResp = await ImagePicker.launchCameraAsync({
         allowsEditing: true,
         mediaTypes: ImagePicker.MediaTypeOptions.All,
@@ -29,14 +37,7 @@ export default function FormFields(props, index, update, formLang) {
       });
 
       if (!cameraResp.canceled) {
-        const { uri } = cameraResp.assets[0];
-        const fileName = uri.split("/").pop();
-
-
-        update(index, fileName);
-
-        //TODO: save image for background uploading
-
+        update(index, cameraResp.assets[0]);
       }
     } catch (e) {
       Alert.alert("Error Uploading Image " + e.message);
@@ -152,6 +153,9 @@ export default function FormFields(props, index, update, formLang) {
         <Text style={styles.item_label}>{props['label'+formLang]} </Text>
         {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
         <View style={styles.btn} ><Button title="Pick Image" color={COLORS.tabBarActiveTintColor} onPress={takePhoto} /></View>
+        {props.val != '' && (
+          <Image source={{ uri: props.val.uri }} style={{ width: 200, height: 200 }} />
+        )}
       </View>
     )
   }

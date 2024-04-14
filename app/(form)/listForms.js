@@ -106,6 +106,8 @@ const listForms = () => {
         onPress: () => console.log('Sending Form to Server')},
     ]);
   }
+
+
   
   const deSelectItems = () => {
     setSelectedItems([]);
@@ -146,15 +148,15 @@ const listForms = () => {
     />
   );
 
-    useEffect(() => {
-      _getFilesInDirectory();
-    }, []);
+  useEffect(() => {
+    _getFilesInDirectory();
+  }, []);
 
-    const handleRefresh = () => {
-      setLoading(true); // Set refreshing to true to show the loading indicator
-      _getFilesInDirectory();
-      //fetchDataAndStore(language, setData, setLoading); // Fetch data when pulled down for refresh
-    };
+  const handleRefresh = () => {
+    setLoading(true); // Set refreshing to true to show the loading indicator
+    _getFilesInDirectory();
+    //fetchDataAndStore(language, setData, setLoading); // Fetch data when pulled down for refresh
+  };
 
 
   if (isLoading) {
@@ -165,53 +167,53 @@ const listForms = () => {
   }
 
    
-    return (
-      <SafeAreaView style={{ flex: 1,}}>
-        <Stack.Screen options={
-          {
-            title: 'Avaialable forms',
-            headerTintColor: COLORS.headerTextColor,
-            headerStyle: {
-              backgroundColor: COLORS.headerBgColor,
-              fontWeight: "bold",
-            },
-            //headerRight: () => <Entypo name="dots-three-vertical" size={16} color={COLORS.headerTextColor} style={{paddingTop: 3}} onPress={() => handleBSOpenPress()} />,
-          }
-        } />            
-            
-            
-        <FlatList
-          data={data}
-          renderItem={(item) => renderItem(item)}
-          extraData={selectedItems}
-          keyExtractor={(item) => item.file_name}
-          removeClippedSubviews
-          contentContainerStyle={styles.list_container}
-          style={styles.list}
-          refreshing={isLoading}
+  return (
+    <SafeAreaView style={{ flex: 1,}}>
+      <Stack.Screen options={
+        {
+          title: 'Avaialable forms',
+          headerTintColor: COLORS.headerTextColor,
+          headerStyle: {
+            backgroundColor: COLORS.headerBgColor,
+            fontWeight: "bold",
+          },
+          //headerRight: () => <Entypo name="dots-three-vertical" size={16} color={COLORS.headerTextColor} style={{paddingTop: 3}} onPress={() => handleBSOpenPress()} />,
+        }
+      } />            
           
-        />
+          
+      <FlatList
+        data={data}
+        renderItem={(item) => renderItem(item)}
+        extraData={selectedItems}
+        keyExtractor={(item) => item.file_name}
+        removeClippedSubviews
+        contentContainerStyle={styles.list_container}
+        style={styles.list}
+        refreshing={isLoading}
+        
+      />
 
-        <FAB
-          size="large"
-          title=""
-          color={COLORS.fontColor}
-          icon={
-            (
-              selectedItems.length ? 
-              <AntDesign name="delete" size={24} color={COLORS.headerTextColor} /> :  
-              <AntDesign name="download" size={24} color={COLORS.headerTextColor} />  
-            )
-          }
-          placement='right'
-          onPress={() => {
+      <FAB
+        size="large"
+        title=""
+        color={COLORS.fontColor}
+        icon={
+          (
             selectedItems.length ? 
-            confirmDeletion() :
-            router.push(href='../(form)/downloadForms')}
-          }
-        />
-      </SafeAreaView>
-    )
+            <AntDesign name="delete" size={24} color={COLORS.headerTextColor} /> :  
+            <AntDesign name="download" size={24} color={COLORS.headerTextColor} />  
+          )
+        }
+        placement='right'
+        onPress={() => {
+          selectedItems.length ? 
+          confirmDeletion() :
+          router.push(href='../(form)/downloadForms')}
+        }
+      />
+    </SafeAreaView>
+  )
 }
 
 

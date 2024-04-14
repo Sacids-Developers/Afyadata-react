@@ -17,6 +17,7 @@ import { CustomTextInput } from '../../components/CustomTextInput';
 
 import { COLORS } from "../../constants/colors"
 import appLogo from '../../assets/images/app_logo.png';
+import { URL } from '../../constants/global';
 
 export default function Login() {
     const [isLoading, setLoading] = useState(false)
@@ -49,11 +50,12 @@ export default function Login() {
                 username: username,
                 password: password,
             };
+            console.log(payload)
 
             console.log(JSON.stringify(payload));
 
             //API URL
-            const LOGIN_URL = "https://dev.sacids.org/api/v1/login";
+            const LOGIN_URL = URL.login;
 
             //post data 
             fetch(LOGIN_URL, {
