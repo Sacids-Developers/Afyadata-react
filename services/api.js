@@ -12,16 +12,21 @@ export const fetchForms = async () => {
 
 
 export const submitFormData = async (formData) => {
-  const formSubmitEndpoint = URL.form_submit;
-  console.log(formSubmitEndpoint)
-  try{
-    const response = await axios.post(formSubmitEndpoint,formData);
-    console.log('response',response.data)
-    return 0
-  }catch(e){
-    console.log(e.message, formSubmitEndpoint)
-    return e.message
+  try {
+    const formSubmitEndpoint = URL.form_submit;
+    console.log(formData);
+    const response = await axios.post(formSubmitEndpoint, formData,{
+        headers: {
+          'Content-Type': 'multipart/form-data', // Set content type to multipart/form-data
+        },
+      }
+    );
+    const data = response.data;
+    console.log('response', data);
+    return 0;
+  } catch (error) {
+    console.error('Error submitting form data:', error);
+    return error
   }
-
 }
 

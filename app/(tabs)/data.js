@@ -191,14 +191,14 @@ const data = () => {
       (xForm) =>{
         let tForm = JSON.parse(xForm)
         // loop through tform
+        const uuid      = tForm['meta']['uuid']
         const jform     = {}
         const formData  = new FormData()
 
         for(const page in tForm.pages){
           for(const field_name in tForm.pages[page]['fields']){
-            //console.log(field_name,' : ',tForm.pages[page]['fields'][field_name]['val'])
             if(tForm.pages[page]['fields'][field_name]['type'] == "image"){
-              jform[field_name]   = tForm.pages[page]['fields'][field_name]['val']['fileName']
+              jform[field_name]   = tForm.pages[page]['fields'][field_name]['val']['name']
               formData.append(field_name, tForm.pages[page]['fields'][field_name]['val'])
             }else{
               jform[field_name]   = tForm.pages[page]['fields'][field_name]['val']
@@ -253,6 +253,7 @@ const data = () => {
         pathname: "../(form)/manageForm",
         params: {
           form_fn: item.file_name,
+          title: item.title,
         }
       })
     }else if(item.status.toUpperCase() == "FINALIZED"){

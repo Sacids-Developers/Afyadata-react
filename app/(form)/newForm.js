@@ -26,6 +26,7 @@ const newForm = () => {
   const {form_fn, new_form} = useLocalSearchParams()
 
   const [mForm, setForm] = useState({pages: [{"fields": {}}]});
+  const [instanceID, setInstanceID] = useState(0)
   const [formData, setFormData] = useState([])
   const [page, setPage]   = useState(0)
   const [totalPages, setTotalPages] = useState(0)
@@ -69,15 +70,9 @@ const newForm = () => {
     //event.preventDefault();
     //console.log(JSON.stringify(mForm))
 
-    uuid =  Crypto.randomUUID();
-    // update meta section of file
     const nForm = {...mForm} // shallow copy
 
     // check if uuid is set, if so, means its a draft form
-    uid = nForm["meta"]["uuid"]
-    nForm["meta"]["uuid"] = uid !== undefined ? uid : uuid;
-
-    //nForm["meta"]["uuid"] = uuid; // update index
    
     const instanceName = nForm["meta"]["instance_name"];
     if (instanceName !== null) {
@@ -87,11 +82,14 @@ const newForm = () => {
     
     nForm["meta"]["status"] = status; // update index
     nForm["meta"]["updated_on"] = new Date().toISOString();
+    if(status = 'Finalized'){
+      nForm["meta"]["end_time"] = new Date().getTime()
+    }
     setForm(nForm); // set new json
 
     //console.log(nForm)
     // save to file
-    saveFormToFile(uuid,JSON.stringify(nForm))
+    saveFormToFile(instanceID,JSON.stringify(nForm))
     alert('success')
     // wait 1 second
     router.back()
@@ -230,6 +228,14 @@ const renderPageLinks = () => {
     FileSystem.readAsStringAsync(file_path).then(
       (xForm) =>{
         let tForm = JSON.parse(xForm)
+
+        // if new form create uuid and set it as meta.uuid
+        if(new_form === "1"){    
+          tForm['meta']['uuid'] = Crypto.randomUUID();
+          tForm['meta']['start_time'] = new Date().getTime();
+        }
+
+        setInstanceID(tForm['meta']['uuid'])
         setForm(tForm)
         setTotalPages(tForm.pages.length)
         setFormLang('::'+tForm['meta']['default_language'])

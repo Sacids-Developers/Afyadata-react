@@ -31,13 +31,18 @@ export default function FormFields(props, index, update, formLang) {
       }
 
       const cameraResp = await ImagePicker.launchCameraAsync({
-        allowsEditing: true,
+        allowsEditing: false,
         mediaTypes: ImagePicker.MediaTypeOptions.All,
         quality: 1,
       });
 
       if (!cameraResp.canceled) {
-        update(index, cameraResp.assets[0]);
+        result = cameraResp.assets[0];
+        update(index, {
+          uri: result.uri,
+          name: result.uri.substring(result.uri.lastIndexOf('/') + 1, result.uri.length),
+          type: 'image/jpeg',
+        });
       }
     } catch (e) {
       Alert.alert("Error Uploading Image " + e.message);
