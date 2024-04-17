@@ -18,7 +18,7 @@ import { PATH } from '../../constants/global';
 import BottomSheet from '@gorhom/bottom-sheet';
 
 import {COLORS} from "../../constants/colors"
-import { saveFormToFile, validate } from '../../services/utils';
+import { replaceVariable, saveFormToFile, validate } from '../../services/utils';
 
 
 const newForm = () => {
@@ -78,7 +78,15 @@ const newForm = () => {
     nForm["meta"]["uuid"] = uid !== undefined ? uid : uuid;
 
     //nForm["meta"]["uuid"] = uuid; // update index
+   
+    const instanceName = nForm["meta"]["instance_name"];
+    if (instanceName !== null) {
+      const formName = replaceVariable(instanceName, "", getSetFields(totalPages - 1));
+      nForm["meta"]["title"]  = formName
+    }
+    
     nForm["meta"]["status"] = status; // update index
+    nForm["meta"]["updated_on"] = new Date().toISOString();
     setForm(nForm); // set new json
 
     //console.log(nForm)

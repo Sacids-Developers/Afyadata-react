@@ -59,7 +59,7 @@ function getTodaysDateAsString() {
     return `${year}-${month}-${day}`;
 }
 
-function replaceVariable(input, key, fields) {
+export function replaceVariable(input, key, fields) {
 
     const pattern = /\$\{(\w+)\}|(?<!\d)[.]/g;
     const output = input.replace(pattern, (match, variable) => {

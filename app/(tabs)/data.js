@@ -88,6 +88,8 @@ const data = () => {
             "status":  tForm.meta.status,
             "uuid":  tForm.meta.uuid,
             "title":  tForm.meta.title,
+            "updated_on":  tForm.meta.updated_on,
+            "created_on":  tForm.meta.created_on,
           }
           files.push(tmp);
         }
