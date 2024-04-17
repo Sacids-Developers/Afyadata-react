@@ -1,37 +1,48 @@
 import { useState } from 'react';
-import { Text, View, input, TextInput, StyleSheet } from 'react-native'
-import { Picker } from '@react-native-picker/picker';
+import { Text, View, input, TextInput, StyleSheet, Button, Alert, Image } from 'react-native'
 import { Dropdown, MultiSelect } from 'react-native-element-dropdown';
 import { Input, Slider } from '@rneui/base';
 import { Ionicons, AntDesign, MaterialIcons, MaterialCommunityIcons, Entypo } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { Camera, CameraType } from 'expo-camera';
 import * as Location from 'expo-location'
+import { COLORS } from '../constants/colors';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Permissions } from 'expo';
 
-
-export default function FormFields(props, index, update) {
-  const [image, setImage] = useState(null)
-  const [location, setLocation] = useState(null);
+export default function FormFields(props, index, update, formLang) {
+  
+  //const [image, setImage] = useState(null)
+  //const [location, setLocation] = useState(null);
 
   //TODO: check for permission
   //const [permission, requestPermission] = Camera.useCameraPermissions();
 
   //capturing photo
   const takePhoto = async () => {
+
     try {
+      // Ask the user for the permission to access the camera
+      const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+      
+      if (permissionResult.granted === false) {
+        alert("You've refused to allow this appp to access your camera!");
+        return;
+      }
+
       const cameraResp = await ImagePicker.launchCameraAsync({
-        allowsEditing: true,
+        allowsEditing: false,
         mediaTypes: ImagePicker.MediaTypeOptions.All,
         quality: 1,
       });
 
       if (!cameraResp.canceled) {
-        const { uri } = cameraResp.assets[0];
-        const fileName = uri.split("/").pop();
-
-        //TODO: save image for background uploading
-
-
+        result = cameraResp.assets[0];
+        update(index, {
+          uri: result.uri,
+          name: result.uri.substring(result.uri.lastIndexOf('/') + 1, result.uri.length),
+          type: 'image/jpeg',
+        });
       }
     } catch (e) {
       Alert.alert("Error Uploading Image " + e.message);
@@ -53,14 +64,11 @@ export default function FormFields(props, index, update) {
     }
 
     let currentLocation = await Location.getCurrentPositionAsync({});
-    
-    //TODO: save location parameters
-    setLocation(currentLocation.coords);
 
-    return currentLocation.coords;
+    loc   = currentLocation.coords.longitude + ',' + currentLocation.coords.latitude + ',' + currentLocation.coords.accuracy
+    update(index, loc);
+
   };
-
-
 
 
   //returning view
@@ -69,15 +77,17 @@ export default function FormFields(props, index, update) {
     // top label of the group 
     return (
       <View style={styles.item_wrp} key={index}>
-        <Text style={styles.group_label}>{props.label}</Text>
+        <Text style={styles.group_label}>{props['label'+formLang]}</Text>
+        {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
       </View>
     )
   }
   else if (props.type === 'integer') {
+
     return (
       <View style={styles.item_wrp} key={index}>
-        <Text style={styles.item_label}>{props.label}</Text>
-        <Text style={styles.item_hint}>{props.hint}</Text>
+        <Text style={styles.item_label}>{props['label'+formLang]}</Text>
+        {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
         <TextInput
           inputMode="numeric"
           style={styles.input}
@@ -86,6 +96,18 @@ export default function FormFields(props, index, update) {
           value={props.val}
           onChangeText={(e) => { update(index, e); }}
         />
+        <Text style={styles.item_error}>{props.error ? props['constraint_message'+formLang] : " "}</Text>
+      </View>
+    )
+  }
+
+  else if (props.type === 'date') {
+    return (
+      <View style={styles.item_wrp} key={index}>
+        <Text style={styles.item_label}>{props['label'+formLang]}</Text>
+        {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
+        <Button style={styles.btn} onPress={getLocation} title="Set Date" />
+        <Text>selected: {props.val}</Text>
       </View>
     )
   }
@@ -95,23 +117,23 @@ export default function FormFields(props, index, update) {
     // top label of the group 
     return (
       <View style={styles.item_wrp} key={index}>
-        <Text style={styles.note_label}>{props.label}</Text>
+        <Text style={styles.note_label}>{props['label'+formLang]}</Text>
+        {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
       </View>
     )
   }
 
-
   else if (props.type === 'text') {
     return (
       <View style={styles.item_wrp} key={index}>
-        <Text style={styles.item_label}>{props.label}</Text>
-        <Text style={styles.item_hint}>{props.hint}</Text>
+        <Text style={styles.item_label}>{props['label'+formLang]}</Text>
+        {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
         <TextInput
           multiline={true}
           numberOfLines={5}
           //textAlignVertical={'top'}
           style={styles.input}
-          placeholder={props.label}
+          placeholder={props['label'+formLang]}
           name={props.name}
           value={props.val}
           onChangeText={(e) => { update(index, e); }}
@@ -119,30 +141,37 @@ export default function FormFields(props, index, update) {
       </View>
     )
   }
-
-  if (props.as === "location") {
+  else if (props.type === "geopoint") {
     return (
       <View style={styles.item_wrp} key={index}>
-        <Text style={styles.item_label}>{props.label}</Text>
-        <Button title="Get Location" onPress={getLocation} />
+        <Text style={styles.item_label}>{props['label'+formLang]}</Text>
+        {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
+        <Text>{props.val} </Text>
+        <Button  style={styles.btn} title="Get Location" onPress={getLocation} />
       </View>
     )
   }
 
-  if (props.as === "image") {
+  else if (props.type === "image") {
     return (
       <View style={styles.item_wrp} key={index}>
-        <Text style={styles.item_label}>{props.label} </Text>
-        <Button title="Pick Image" onPress={takePhoto} />
-        {image && <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />}
+        <Text style={styles.item_label}>{props['label'+formLang]} </Text>
+        {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
+        <View style={styles.btn} ><Button title="Pick Image" color={COLORS.tabBarActiveTintColor} onPress={takePhoto} /></View>
+        {props.val != '' && (
+          <Image source={{ uri: props.val.uri }} style={{ width: 200, height: 200 }} />
+        )}
       </View>
     )
   }
 
-  if (props.as === "video") {
+  //{image && <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />}
+
+  else if (props.type === "video") {
     return (
       <View style={styles.item_wrp} key={index}>
-        <Text style={styles.item_label}>{props.label} </Text>
+        <Text style={styles.item_label}>{props['label'+formLang]} </Text>
+        {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
         <Button title="Record Video" onPress={recordVideo} />
       </View>
     )
@@ -151,12 +180,12 @@ export default function FormFields(props, index, update) {
   else if (props.type === 'password') {
     return (
       <View style={styles.item_wrp} key={index}>
-        <Text style={styles.item_label}>{props.label}</Text>
-        <Text style={styles.item_hint}>{props.hint}</Text>
+        <Text style={styles.item_label}>{props['label'+formLang]}</Text>
+        {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
         <TextInput
           secureTextEntry={true}
           style={styles.input}
-          placeholder={props.label}
+          placeholder={props['label'+formLang]}
           value={props.val}
           onChange={(e) => { update(index, e.nativeEvent.text) }}
         />
@@ -167,12 +196,12 @@ export default function FormFields(props, index, update) {
   else if (props.type === 'email') {
     return (
       <View style={styles.item_wrp} key={index}>
-        <Text style={styles.item_label}>{props.label}</Text>
-        <Text style={styles.item_hint}>{props.hint}</Text>
+        <Text style={styles.item_label}>{props['label'+formLang]}</Text>
+        {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
         <TextInput
           inputMode="email"
           style={styles.input}
-          placeholder={props.label}
+          placeholder={props['label'+formLang]}
           value={props.val}
           onChangeText={text => update(index, text)}
         />
@@ -188,8 +217,8 @@ export default function FormFields(props, index, update) {
     let p = props.parameters
     return (
       <View style={styles.item_wrp} key={index}>
-        <Text style={styles.item_label}>{props.label}</Text>
-        <Text style={styles.item_hint}>{props.hint}</Text>
+        <Text style={styles.item_label}>{props['label'+formLang]}</Text>
+        {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
         <Slider
           value={props.val}
           onValueChange={text => update(index, text)}
@@ -206,11 +235,15 @@ export default function FormFields(props, index, update) {
 
   else if (props.type === 'select_one') {
 
+    if(props.options == null){
+      return (<View key={index}><Text>Error in Form at {index}</Text></View>)
+    }
+
     const renderItem = item => {
       return (
-        <View style={styles.item}>
-          <Text style={styles.textItem}>{item.label}</Text>
-          {item.value === props.val && (
+        <View style={styles.select_item_wrp}>
+          <Text style={styles.select_item_text}>{item['label'+formLang]}</Text>
+          {item.name === props.val && (
             <AntDesign
               style={styles.icon}
               color="black"
@@ -224,10 +257,10 @@ export default function FormFields(props, index, update) {
 
     return (
       <View style={styles.item_wrp} key={index}>
-        <Text style={styles.item_label}>{props.label}</Text>
-        <Text style={styles.item_hint}>{props.hint}</Text>
+        <Text style={styles.item_label}>{props['label'+formLang]}</Text>
+        {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
         <Dropdown
-          style={styles.dropdown}
+          style={styles.input}
           placeholderStyle={styles.placeholderStyle}
           selectedTextStyle={styles.selectedTextStyle}
           inputSearchStyle={styles.inputSearchStyle}
@@ -235,8 +268,8 @@ export default function FormFields(props, index, update) {
           data={props.options}
           search
           maxHeight={300}
-          labelField="label"
-          valueField="value"
+          labelField={"label"+formLang}
+          valueField="name"
           placeholder="Select item"
           searchPlaceholder="Search..."
           value={props.val}
@@ -253,23 +286,27 @@ export default function FormFields(props, index, update) {
 
 
 
-  if (props.as === 'select') {
+  if (props.type === 'select' || props.type === 'select_multiple') {
+
+    if(props.options == null){
+      return (<View key={index}><Text>Error in Form at {index}</Text></View>)
+    }
 
 
     return (
       <View style={styles.item_wrp} key={index}>
-        <Text style={styles.item_label}>{props.label}</Text>
-        <Text style={styles.item_hint}>{props.hint}</Text>
+        <Text style={styles.item_label}>{props['label'+formLang]}</Text>
+        {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
         <MultiSelect
-          style={styles.dropdown}
+          style={styles.input}
           placeholderStyle={styles.placeholderStyle}
           selectedTextStyle={styles.selectedTextStyle}
           inputSearchStyle={styles.inputSearchStyle}
           iconStyle={styles.iconStyle}
           search
           data={props.options}
-          labelField="label"
-          valueField="value"
+          labelField={'label'+formLang}
+          valueField="name"
           placeholder="Select item"
           searchPlaceholder="Search..."
           value={props.val}
@@ -285,9 +322,9 @@ export default function FormFields(props, index, update) {
 
     return (
       <View style={styles.item_wrp} key={index}>
-        <Text style={styles.item_label}>{props.label}</Text>
-        <Text style={styles.item_label}>{props.hint}</Text>
-        <TextInput style={styles.input} placeholder={props.label} name={props.name} value={props.val} onChangeText={(e) => { update(index, e); }} />
+        <Text style={styles.item_label}>{props['label'+formLang]}</Text>
+        {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
+        <TextInput style={styles.input} placeholder={props['label'+formLang]} name={props.name} value={props.val} onChangeText={(e) => { update(index, e); }} />
       </View>
     )
 
@@ -312,10 +349,16 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontStyle: "italic",
   },
+  item_error: {
+    fontSize: 15,
+    fontStyle: "italic",
+    color: "red",
+  },
 
   group_label: {
     fontSize: 18,
-    color: "maroon",
+    fontWeight: "bold",
+    color: COLORS.fontColor,
   },
 
 
@@ -324,37 +367,49 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
     color: "#444",
   },
+  note_label: {
+    fontSize: 16,
+    fontStyle: "italic",
+    color: "red",
+  },
 
   item_input: {
     fontSize: 18,
     borderWidth: 1,
-    borderColor: "gray",
+    borderColor: COLORS.borderColor,
     paddingVertical: 3,
-
   },
   input: {
     height: 40,
-    margin: 12,
+    marginVertical: 4,
     borderWidth: 1,
-    borderColor: "gray",
+    fontSize: 18,
+    borderColor: COLORS.borderColor,
     padding: 10,
   },
 
-
-
-  dropdown: {
+  btn: {
     height: 40,
-    backgroundColor: 'transparent',
-    borderColor: 'gray',
     margin: 12,
-    padding: 2,
     borderWidth: 1,
+    borderColor: COLORS.borderColor,
+    backgroundColor: COLORS.backgroundColor,
+    padding: 10,
+  },
+
+  input: {
+    height: 40,
+    marginVertical: 4,
+    borderWidth: 1,
+    borderColor: COLORS.borderColor,
+    padding: 10,
+    backgroundColor: 'transparent',
   },
   placeholderStyle: {
-    fontSize: 16,
+    fontSize: 14,
   },
   selectedTextStyle: {
-    fontSize: 14,
+    fontSize: 12,
   },
   iconStyle: {
     width: 20,
@@ -371,6 +426,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
 
+  select_item_text: {
+    paddingVertical: 1,
+    paddingHorizontal:2,
+  },
+  select_item_wrp:{
+    paddingVertical: 1,
+  },
 
 
 });

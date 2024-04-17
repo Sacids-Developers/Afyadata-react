@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 BASE_URL    = "http://192.168.41.174:8000/api/v2/pages/?locale=en"
 API_URL     =  BASE_URL+"&type=outlets.outletPage&fields=*"
-API_URL     = "http://127.0.0.1:8000/form_list"
+API_URL     = "http://192.168.1.101:8000/form_list"
 
 
 export const fetchDataAndStore = async (setData,setLoading) => {

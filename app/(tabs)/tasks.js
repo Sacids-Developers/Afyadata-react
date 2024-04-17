@@ -7,7 +7,7 @@ import React, { useEffect, useState } from 'react'
 import { fetchDataAndStore, retrieveStoredData } from '../../services/updates'
 import { Link } from 'expo-router'
 
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, Entypo } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
 
 import Animated, {
@@ -18,15 +18,14 @@ import Animated, {
   useSharedValue,
 } from "react-native-reanimated";
 
-const HEADER_MAX_HEIGHT = Dimensions.get('window').height/2.6;
-const HEADER_MIN_HEIGHT = 30;
-const HEADER_SCROLL_DISTANCE = HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT;
 
+import { HEADER_MAX_HEIGHT, HEADER_MIN_HEIGHT, HEADER_SCROLL_DISTANCE } from '../../constants/dimensions';
 import {COLORS} from "../../constants/colors"
 
 
 import { useStoreState } from 'pullstate';
 import { state } from '../../stores/state';
+import TasksItem from '../../components/TasksItem';
 
 
 const tasks = () => {
@@ -35,26 +34,7 @@ const tasks = () => {
     const [isLoading, setLoading] = useState(false)
 
     language = 'en'
-
-    const Item = ({update}) => (
-      <Link href={{
-          pathname: "",
-          params: {
-            id: update.id,
-            question: update.title,
-            answer: update.title,
-          },
-        }} asChild>
-        <Pressable>
-          <View style={styles.item}>
-            <View style={{padding: 10,}}>
-              <Text style={styles.item_title}>{update.title}</Text>
-            </View>
-          </View>
-        </Pressable>
-      </Link>
-    );
-
+    
     useEffect(() => {
       fetchDataAndStore(language, setData, setLoading); // Fetch data when the app is online
       retrieveStoredData(setData, setLoading); // Retrieve stored data when the app is offline
@@ -97,29 +77,24 @@ const tasks = () => {
           <View style={{ flex: 1, backgroundColor: COLORS.backgroundColor}}>
             
               <Animated.View style={[styles.header, summaryBlockStyle ]}>
-                <FontAwesome5 name="tasks" size={50} color={COLORS.fontColor} />
-                <Text style={{fontSize: 30, color: COLORS.fontColor, paddingTop: 8,}}>My Tasks</Text>
+                <FontAwesome5 name="tasks" size={50} color={COLORS.headerTextColor} />
+                <Text style={{fontSize: 30, color: COLORS.headerTextColor, paddingTop: 8,}}>My Tasks</Text>
               </Animated.View>
 
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  paddingHorizontal: 15,
-                  paddingVertical:8,
-                  color: "#f7f2e4",
-                }}
-              >
-                <Animated.Text style={[styles.title, titleBlockStyle]}> My Tasks </Animated.Text>
-                <Ionicons name="search-outline" size={24} color={COLORS.fontColor} />
-
+              <View style={styles.tab_header} >
+                <Animated.Text style={[styles.title, titleBlockStyle]}> Tasks </Animated.Text>
+                <View style={{flexDirection: "row"}}>
+                  <Ionicons name="filter" size={20} color={COLORS.headerTextColor}/>
+                  <Ionicons name="search-outline" size={22} color={COLORS.headerTextColor}  style={{paddingHorizontal: 14}} />
+                  <Entypo name="dots-three-vertical" size={16} color={COLORS.headerTextColor} style={{paddingTop: 3}}/>
+                </View>
               </View>
               
               <Animated.FlatList
                 data={data}
                 scrollEventThrottle={16}
                 renderItem={({item}) => (
-                    <Item update={item}></Item>
+                    <TasksItem item={item}></TasksItem>
                 )}
                 keyExtractor={item => item.id}
                 onScroll={onScroll}
@@ -163,10 +138,22 @@ const styles = StyleSheet.create({
     height: HEADER_MAX_HEIGHT,
     margin: 0,
     fontSize: 50,
-    color: COLORS.fontColor,
+    backgroundColor: COLORS.headerBgColor,
     alignItems: 'center',
     justifyContent: 'center',
   },
+
+
+  tab_header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    color: COLORS.headerTextColor,
+    verticalAlign: "middle",
+    backgroundColor: COLORS.headerBgColor,
+  },
+
 
   list:{
     flex: 1,
@@ -182,7 +169,7 @@ const styles = StyleSheet.create({
   },
   
   title: {
-    color: COLORS.fontColor,
+    color: COLORS.headerTextColor,
     fontSize: 18,
     paddingTop: 3,
   },

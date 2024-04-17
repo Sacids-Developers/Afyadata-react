@@ -1,16 +1,17 @@
 import { Tabs } from "expo-router";
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Ionicons } from '@expo/vector-icons';
+import { Entypo, MaterialIcons,MaterialCommunityIcons, FontAwesome5, AntDesign } from '@expo/vector-icons';
 import { View, Text } from 'react-native'
 
 import * as NavigationBar from 'expo-navigation-bar';
 import { Platform } from "react-native";
 
 import {COLORS} from "../../constants/colors"
-
 export default function Layout() {
 
-    if(Platform.OS === 'android') NavigationBar.setBackgroundColorAsync(COLORS.backgroundColor);
+    if(Platform.OS === 'android'){
+        NavigationBar.setBackgroundColorAsync(COLORS.backgroundColor);
+        NavigationBar.setButtonStyleAsync("dark")
+    }
 
     return (
     <Tabs
@@ -18,11 +19,18 @@ export default function Layout() {
             headerShown: false,
 
             tabBarStyle: {
-                paddingTop: 8,
-                borderColor: COLORS.borderColor,
+                borderColor: COLORS.tabBackgroundColor,
                 borderTopColor: COLORS.borderTopColor,
-                backgroundColor: COLORS.borderColor,
+                backgroundColor: COLORS.tabBackgroundColor,
+                height: 65,
+                paddingTop: 10,
+                
             },
+            tabBarLabelStyle: {
+                fontSize: 13,
+                marginBottom: 8,
+            },
+            padding: 15,
 
             tabBarActiveTintColor: COLORS.tabBarActiveTintColor,
             tabBarInactiveTintColor: COLORS.tabBarInactiveTintColor,
@@ -31,33 +39,34 @@ export default function Layout() {
     > 
         <Tabs.Screen name="updates" 
             options={{
-                title: "Updates",
-                tabBarIcon: ({ focused, color, size }) => (<Text style={{ fontSize: 16, color: color}}>Updates</Text>),
-                title: '',
+                title: "Inbox",
+                tabBarIcon: ({ focused, color, size }) => (<MaterialCommunityIcons name="message-settings-outline" size={22} color={color} />),
+                title: 'Inbox',
             }}>
         </Tabs.Screen>
         <Tabs.Screen name="tasks"
             options={{
                 title: 'Tasks',
-                tabBarIcon: ({ focused, color, size }) => (<Text style={{ fontSize: 16, color: color}}>Tasks</Text>),
-                title: '',
+                tabBarIcon: ({ focused, color, size }) => (<FontAwesome5 name="tasks"  size={20} color={color} />),
+                title: 'Tasks',
             }}>
         </Tabs.Screen>
         <Tabs.Screen name="data"
             options={{
                 title: 'Data',
-                tabBarIcon: ({ focused, color, size }) => (<Text style={{ fontSize: 16, color: color }}>My Data</Text>),
-                title: '',
+                tabBarIcon: ({ focused, color, size }) => (<AntDesign name="database"  size={18} color={color} />),
+                title: 'Data',
             }}>
         </Tabs.Screen>
 
         <Tabs.Screen name="settings"
             options={{
-                tabBarIcon: ({focused, color, size}) => (<Ionicons name="settings-outline" size={20} color={color} />),
-                title: '',
+                tabBarIcon: ({focused, color, size}) => (<MaterialCommunityIcons name="view-day-outline" size={22} color={color} />),
+                title: 'More',
             }}>
 
         </Tabs.Screen>
+
     </Tabs>
     );
   }

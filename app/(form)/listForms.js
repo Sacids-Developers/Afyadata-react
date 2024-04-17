@@ -1,181 +1,219 @@
 
 
-import { View, Text, StyleSheet, ActivityIndicator, Pressable, SafeAreaView,  Dimensions } from 'react-native'
-import React, { useEffect, useLayoutEffect, useState } from 'react'
+import { View, Text, StyleSheet, ActivityIndicator, Pressable, SafeAreaView,  FlatList, Alert } from 'react-native'
+import React, { useEffect, useState } from 'react'
 
 import * as FileSystem from 'expo-file-system';
 
-import { Link, router, useNavigation } from 'expo-router'
+import { Link, Stack, router, useNavigation } from 'expo-router'
 
 import { Ionicons, AntDesign, Entypo } from '@expo/vector-icons';
 import { FAB } from '@rneui/themed';
 
-import Animated, {
-  Extrapolation,
-  interpolate,
-  useAnimatedScrollHandler,
-  useAnimatedStyle,
-  useSharedValue,
-} from "react-native-reanimated";
-
-const HEADER_MAX_HEIGHT = Dimensions.get('window').height/2.6;
-const HEADER_MIN_HEIGHT = 30;
-const HEADER_SCROLL_DISTANCE = HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT;
 
 import {COLORS} from "../../constants/colors"
 import {PATH, URL} from "../../constants/global"
+import DataItem from '../../components/DataItem';
+import { deleteFile } from '../../services/files';
+
 
 
 const listForms = () => {
 
-    const [data, setData] = useState([])
-    const [isLoading, setLoading] = useState(false)
-    const navigation = useNavigation();
+  const [data, setData] = useState({})
+  const [isLoading, setLoading] = useState(false)
+  const [selectedItems, setSelectedItems] = useState([]);
 
 
-    language = 'en'
+  language = 'en'
 
-    _getFilesInDirectory = async() => {
-      
-      let files = [];
-      let dir = await FileSystem.readDirectoryAsync(PATH.form_defn);
+  _getFilesInDirectory = async () => {
+    
+    setLoading(true)
+    let files = [];
+    let dir = await FileSystem.readDirectoryAsync(PATH.form_defn);
 
-      dir.forEach((val) => {
-
-        // read json file
-        FileSystem.readAsStringAsync(PATH.form_defn+val).then(
-          (xForm) =>{
-            let tForm = JSON.parse(xForm)
-            console.log(tForm.meta.name)
-            let tmp = {
-              "file_name": val,
-              "form_name": tForm.meta.name,
-              "version":  tForm.meta.version,
-            }
-            files.push(tmp);
+    dir.forEach((val, index) => {
+      // read json file
+      FileSystem.readAsStringAsync(PATH.form_defn+val).then(
+        (xForm) =>{
+          let tForm = JSON.parse(xForm)
+          let tmp = {
+            "id": index,
+            "file_name": val,
+            "form_name": tForm.meta.name,
+            "formID": tForm.meta.id,
+            "uuid": val,
+            "version":  tForm.meta.version,
+            "status":  tForm.meta.title,
+            "title":  tForm.meta.title,
           }
-        ).catch(
-          (e) => {console.log(e)}
-        )  
+          console.log(tmp)
+          files.push(tmp);
+        }
+      ).catch(
+        (e) => {
+          console.log(e)
+        }
+        
+      )  
+    
+    });
+    console.log(files)
+    setData(files)
+    setLoading(false)
+  }
       
-      });
-      console.log(files)
-      setData(files)
-      setLoading(false)
+  const confirmDeletion = () => {
+    Alert.alert('From Deletion', 'Are you sure you want to delete form(s) on your phone', [
+      {
+        text: 'Cancel',
+        onPress: () => console.log('Cancel Pressed'),
+        style: 'cancel',
+      },
+      { 
+        text: 'OK', 
+        onPress: () => {
+          count   = 0
+          total_selected = selectedItems.length
+          selectedItems.forEach((index) => {
+            fn = data[index].file_name
+            console.log('deleting ....',fn)
+            if(deleteFile(PATH.form_defn+fn)){
+              console.log('reload data')
+              count++
+            }
 
-      ;
+          });
+
+          _getFilesInDirectory();
+          setSelectedItems([])
+          console.log('Delete forms')
+        }
+      },
+    ]);
+  }
+
+  const confirmSubmission = () => {
+    Alert.alert('From Submission', 'Are you sure you want to submit the form to the server', [
+      {
+        text: 'Cancel',
+        onPress: () => console.log('Cancel Pressed'),
+        style: 'cancel',
+      },
+      { 
+        text: 'OK', 
+        onPress: () => console.log('Sending Form to Server')},
+    ]);
+  }
+
+
+  
+  const deSelectItems = () => {
+    setSelectedItems([]);
+  }
+  const selectItems = (item) => {
+    if (selectedItems.includes(item.id)) {
+      const newListItems = selectedItems.filter(
+        listItem => listItem !== item.id,
+      );
+      return setSelectedItems([...newListItems]);
+    }
+    setSelectedItems([...selectedItems, item.id]);
+  };
+  
+  const handlePress = (item) => {
+
+
+    if (selectedItems.length != 0) {
+      return selectItems(item);
     }
 
-    const Item = ({item}) => (
-      <Link href={{
-          pathname: "../newForm",
-          params: {
-            form_fn: item.file_name,
-            new_form: "1",
-          },
-        }} asChild>
-        <Pressable>
-          <View style={styles.item}>
-            <View style={{padding: 10,}}>
-              <Text style={{fontSize: 14,color: "black"}}>{item.form_name}</Text>
-              <Text style={{fontSize: 12, color: "#999",}}>{item.file_name}</Text>
-              <View style={{flexDirection: "row"}}>
-                <Text style={{fontSize: 12, color: "#aaa",}}>created on</Text>
-                <Text style={{fontSize: 12, color: "#aaa",}}> | Version {item.version}</Text>
-              </View>
-            </View>
-          </View>
-        </Pressable>
-      </Link>
-    );
-
-    useEffect(() => {
-      _getFilesInDirectory();
-    }, []);
-
-    useLayoutEffect(() => {
-      navigation.setOptions({
-        title: 'List Forms',
-      });
-    }, [navigation]);
-
-    const handleRefresh = () => {
-      setLoading(true); // Set refreshing to true to show the loading indicator
-      _getFilesInDirectory();
-      //fetchDataAndStore(language, setData, setLoading); // Fetch data when pulled down for refresh
-    };
-
-    const scrollY = useSharedValue(0);
-  
-    const onScroll = useAnimatedScrollHandler((event) => {
-      scrollY.value = event.contentOffset.y;
-    });
-
-    const summaryBlockStyle = useAnimatedStyle(() => {
-
-      return {
-        height:   interpolate(scrollY.value,[0,HEADER_MAX_HEIGHT],[HEADER_MAX_HEIGHT,HEADER_MIN_HEIGHT],Extrapolation.CLAMP),
-        //marginBottom: interpolate(scrollY.value,[0,200],[0,HEADER_MIN_HEIGHT],Extrapolation.CLAMP)
-        opacity:  interpolate(scrollY.value,[0, HEADER_SCROLL_DISTANCE / 2, HEADER_SCROLL_DISTANCE],[1, 1, 0],Extrapolation.CLAMP),
-          
+    return router.push({
+      pathname: "../(form)/newForm",
+      params: {
+        form_fn: item.file_name,
+        new_form: 1,
       }
-    });
+    })
+    
+  }
+
+  const renderItem = ({ item }) => (
+    <DataItem
+      item={item}
+      onPress={() => handlePress(item)}
+      onLongPress={() => selectItems(item)}
+      isSelected={selectedItems.includes(item.id)}
+    />
+  );
+
+  useEffect(() => {
+    _getFilesInDirectory();
+  }, []);
+
+  const handleRefresh = () => {
+    setLoading(true); // Set refreshing to true to show the loading indicator
+    _getFilesInDirectory();
+    //fetchDataAndStore(language, setData, setLoading); // Fetch data when pulled down for refresh
+  };
 
 
-    const titleBlockStyle = useAnimatedStyle(() => {
-
-      return {
-        opacity:  interpolate(scrollY.value,[0, HEADER_SCROLL_DISTANCE / 2, HEADER_SCROLL_DISTANCE],[0, 1, 1],Extrapolation.CLAMP),     
-      }
-    });
-
+  if (isLoading) {
     return (
       <SafeAreaView style={{ flex: 1,}}>
-        { isLoading ? 
-          (<ActivityIndicator  size="large" color="#0000ff" />):
-          (              
-          <View style={{ flex: 1, backgroundColor: COLORS.backgroundColor}}>
-            
-              <Animated.View style={[styles.header, summaryBlockStyle ]}>
-                <Entypo name="new-message" size={50} color={COLORS.fontColor}  />
-                <Text style={{fontSize: 30, color: COLORS.fontColor, paddingTop: 8,}}>Fill Form</Text>
-              </Animated.View>
+        <ActivityIndicator  size="large" color="#0000ff" />
+      </SafeAreaView>)
+  }
 
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  paddingHorizontal: 15,
-                  paddingVertical:8,
-                  color: "#f7f2e4",
-                }}
-              >
-                <Animated.Text style={[styles.title, titleBlockStyle]}> Fill Form </Animated.Text>
-                <Ionicons name="search-outline" size={24} color={COLORS.fontColor} />
-                
+   
+  return (
+    <SafeAreaView style={{ flex: 1,}}>
+      <Stack.Screen options={
+        {
+          title: 'Avaialable forms',
+          headerTintColor: COLORS.headerTextColor,
+          headerStyle: {
+            backgroundColor: COLORS.headerBgColor,
+            fontWeight: "bold",
+          },
+          //headerRight: () => <Entypo name="dots-three-vertical" size={16} color={COLORS.headerTextColor} style={{paddingTop: 3}} onPress={() => handleBSOpenPress()} />,
+        }
+      } />            
+          
+          
+      <FlatList
+        data={data}
+        renderItem={(item) => renderItem(item)}
+        extraData={selectedItems}
+        keyExtractor={(item) => item.file_name}
+        removeClippedSubviews
+        contentContainerStyle={styles.list_container}
+        style={styles.list}
+        refreshing={isLoading}
+        
+      />
 
-              </View>
-              
-              <Animated.FlatList
-                data={data}
-                scrollEventThrottle={16}
-                renderItem={({item}) => (
-                    <Item item={item}></Item>
-                )}
-                keyExtractor={item => item.file_name}
-                onScroll={onScroll}
-                removeClippedSubviews
-                contentContainerStyle={styles.list_container}
-                style={styles.list}
-                onRefresh={handleRefresh}
-                refreshing={isLoading}
-                
-              />
-          </View>
+      <FAB
+        size="large"
+        title=""
+        color={COLORS.fontColor}
+        icon={
+          (
+            selectedItems.length ? 
+            <AntDesign name="delete" size={24} color={COLORS.headerTextColor} /> :  
+            <AntDesign name="download" size={24} color={COLORS.headerTextColor} />  
           )
         }
-      </SafeAreaView>
-    )
+        placement='right'
+        onPress={() => {
+          selectedItems.length ? 
+          confirmDeletion() :
+          router.push(href='../(form)/downloadForms')}
+        }
+      />
+    </SafeAreaView>
+  )
 }
 
 
@@ -185,46 +223,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  item: {
-    paddingVertical: 3,
-    paddingHorizontal: 15,
-    borderBottomWidth: 1,
-    borderColor: COLORS.backgroundColor,
-  },
-  item_title: {
-    fontSize: 20,
-  },
-  item_text: {
-    fontSize: 12,
-  },
-
-  header: {
-    height: HEADER_MAX_HEIGHT,
-    margin: 0,
-    fontSize: 50,
-    color: COLORS.fontColor,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
   list:{
     flex: 1,
     margin: 0,
     padding: 0,
     backgroundColor: COLORS.backgroundColor,
-    borderRadius: 20,
   },
 
-  list_container:{
-    borderRadius: 25, 
+  list_container:{ 
+    marginTop: 15,
     backgroundColor: "white",
   },
   
-  title: {
-    color: COLORS.fontColor,
-    fontSize: 18,
-    paddingTop: 3,
-  },
 
 
 });

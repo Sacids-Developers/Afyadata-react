@@ -25,8 +25,9 @@ const createDirectory = async (dir) => {
 export default function index() {
   useEffect(() => {
     createDirectory('DEFN');
+    createDirectory('TASKS');
     createDirectory('DATA');
-    createDirectory('DATA/MEDIA');
+    createDirectory('MEDIA');
   }, []);
 
   try {

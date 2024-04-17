@@ -5,9 +5,9 @@ import React, { useEffect, useState } from 'react'
 
 
 import { fetchDataAndStore, retrieveStoredData } from '../../services/updates'
-import { Link } from 'expo-router'
+import { getUpdates } from '../../services/cpb'
 
-import { Ionicons, Octicons } from '@expo/vector-icons';
+import { Ionicons, Octicons, Entypo, MaterialCommunityIcons } from '@expo/vector-icons';
 
 import Animated, {
   Extrapolation,
@@ -17,122 +17,99 @@ import Animated, {
   useSharedValue,
 } from "react-native-reanimated";
 
-const HEADER_MAX_HEIGHT = Dimensions.get('window').height/2.6;
-const HEADER_MIN_HEIGHT = 30;
-const HEADER_SCROLL_DISTANCE = HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT;
-
+import { HEADER_MAX_HEIGHT, HEADER_MIN_HEIGHT, HEADER_SCROLL_DISTANCE } from '../../constants/dimensions';
 import {COLORS} from "../../constants/colors"
-
 
 import { useStoreState } from 'pullstate';
 import { state } from '../../stores/state';
-
+import { useQuery } from '@tanstack/react-query';
+import UpdateItem from '../../components/UpdateItem'
+import { FAB } from '@rneui/themed';
 
 const updates = () => {
 
-    const [data, setData] = useState([])
-    const [isLoading, setLoading] = useState(false)
+  const {isPending, isError, data, error} = useQuery({ queryKey: ['movies'], queryFn: getUpdates })
 
-    language = 'en'
+  const scrollY = useSharedValue(0);
+  const onScroll = useAnimatedScrollHandler((event) => {
+    scrollY.value = event.contentOffset.y;
+  });
+  const summaryBlockStyle = useAnimatedStyle(() => {
 
-    const Item = ({update}) => (
-      <Link href={{
-          pathname: "dynamicForm",
-          params: {
-            id: update.id,
-          },
-        }} asChild>
-        <Pressable>
-          <View style={styles.item}>
-            <View style={{padding: 10,}}>
-              <Text style={styles.item_title}>{update.title}</Text>
-            </View>
-          </View>
-        </Pressable>
-      </Link>
-    );
+    return {
+      height:   interpolate(scrollY.value,[0,HEADER_MAX_HEIGHT],[HEADER_MAX_HEIGHT,HEADER_MIN_HEIGHT],Extrapolation.CLAMP),
+      //marginBottom: interpolate(scrollY.value,[0,200],[0,HEADER_MIN_HEIGHT],Extrapolation.CLAMP)
+      //opacity:  interpolate(scrollY.value,[0, HEADER_SCROLL_DISTANCE / 2, HEADER_SCROLL_DISTANCE],[1, 1, 0],Extrapolation.CLAMP),
+        
+    }
+  });
+  const titleBlockStyle = useAnimatedStyle(() => {
 
-    useEffect(() => {
-      fetchDataAndStore(language, setData, setLoading); // Fetch data when the app is online
-      retrieveStoredData(setData, setLoading); // Retrieve stored data when the app is offline
-    }, []);
+    return {
+      opacity:  interpolate(scrollY.value,[0, HEADER_SCROLL_DISTANCE / 2, HEADER_SCROLL_DISTANCE],[0, 1, 1],Extrapolation.CLAMP),     
+    }
+  });
 
-    const handleRefresh = () => {
-      setLoading(true); // Set refreshing to true to show the loading indicator
-      fetchDataAndStore(language, setData, setLoading); // Fetch data when pulled down for refresh
-    };
-
-    const scrollY = useSharedValue(0);
-  
-    const onScroll = useAnimatedScrollHandler((event) => {
-      scrollY.value = event.contentOffset.y;
-    });
-
-    const summaryBlockStyle = useAnimatedStyle(() => {
-
-      return {
-        height:   interpolate(scrollY.value,[0,HEADER_MAX_HEIGHT],[HEADER_MAX_HEIGHT,HEADER_MIN_HEIGHT],Extrapolation.CLAMP),
-        //marginBottom: interpolate(scrollY.value,[0,200],[0,HEADER_MIN_HEIGHT],Extrapolation.CLAMP)
-        opacity:  interpolate(scrollY.value,[0, HEADER_SCROLL_DISTANCE / 2, HEADER_SCROLL_DISTANCE],[1, 1, 0],Extrapolation.CLAMP),
-          
-      }
-    });
-
-
-    const titleBlockStyle = useAnimatedStyle(() => {
-
-      return {
-        opacity:  interpolate(scrollY.value,[0, HEADER_SCROLL_DISTANCE / 2, HEADER_SCROLL_DISTANCE],[0, 1, 1],Extrapolation.CLAMP),     
-      }
-    });
-
+  if (isPending) {
     return (
       <SafeAreaView style={{ flex: 1,}}>
-        { isLoading ? 
-          (<ActivityIndicator  size="large" color="#0000ff" />):
-          (              
-          <View style={{ flex: 1, backgroundColor: COLORS.backgroundColor}}>
-            
-              <Animated.View style={[styles.header, summaryBlockStyle ]}>
-                <Octicons name="report" size={50} color={COLORS.fontColor} />
-                <Text style={{fontSize: 30, color: COLORS.fontColor, paddingTop: 8,}}>Updates</Text>
-              </Animated.View>
+        <ActivityIndicator  size="large" color="#0000ff" />
+      </SafeAreaView>)
+  }
 
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  paddingHorizontal: 15,
-                  paddingVertical:8,
-                  color: "#f7f2e4",
-                }}
-              >
-                <Animated.Text style={[styles.title, titleBlockStyle]}> Updates </Animated.Text>
-                <Ionicons name="search-outline" size={24} color={COLORS.fontColor} />
+  if (isError) {
+    return (
+      <SafeAreaView style={{ flex: 1,}}>
+        <Text>Error: {error.message}</Text>
+      </SafeAreaView>)
+  }
 
-              </View>
-              
-              <Animated.FlatList
-                data={data}
-                scrollEventThrottle={16}
-                renderItem={({item}) => (
-                    <Item update={item}></Item>
-                )}
-                keyExtractor={item => item.id}
-                onScroll={onScroll}
-                removeClippedSubviews
-                contentContainerStyle={styles.list_container}
-                style={styles.list}
-                onRefresh={handleRefresh}
-                refreshing={isLoading}
-                
-              />
+  return (
+    <SafeAreaView style={{ flex: 1,}}>
+
+      <View style={{ flex: 1, backgroundColor: COLORS.backgroundColor}}>
+    
+        <Animated.View style={[styles.header, summaryBlockStyle ]}>
+          <Octicons name="report" size={50} color={COLORS.headerTextColor} />
+          <Text style={{fontSize: 30, color: COLORS.headerTextColor, paddingTop: 8,}}>Inbox</Text>
+        </Animated.View>
+
+        <View style={styles.tab_header} >
+          <Animated.Text style={[styles.title, titleBlockStyle]}> Inbox </Animated.Text>
+          <View style={{flexDirection: "row"}}>
+            <Ionicons name="filter" size={20} color={COLORS.headerTextColor}/>
+            <Ionicons name="search-outline" size={22} color={COLORS.headerTextColor}  style={{paddingHorizontal: 14}} />
+            <Entypo name="dots-three-vertical" size={16} color={COLORS.headerTextColor} style={{paddingTop: 3}}/>
           </View>
-          )
-        }
-      </SafeAreaView>
-    )
+        </View>
+
+        <Animated.FlatList
+          data={data}
+          scrollEventThrottle={16}
+          renderItem={({item}) => (<UpdateItem item={item}></UpdateItem>)}
+          keyExtractor={item => item.id}
+          onScroll={onScroll}
+          removeClippedSubviews
+          contentContainerStyle={styles.list_container}
+          style={styles.list}
+          //onRefresh={handleRefresh}
+          //refreshing={isLoading}
+        />
+        <FAB
+          size="large"
+          title=""
+          color={COLORS.fontColor}
+          icon={<MaterialCommunityIcons name="message-plus-outline" size={24} color={COLORS.headerTextColor} />}
+          placement='right'
+          onPress={() => {
+            console.log('Write Message')
+          }}
+        />
+      </View>
+    </SafeAreaView>
+  )
 }
+
 
 
 export default updates
@@ -160,9 +137,22 @@ const styles = StyleSheet.create({
     height: HEADER_MAX_HEIGHT,
     margin: 0,
     fontSize: 50,
+    backgroundColor: COLORS.headerBgColor,
     color: COLORS.fontColor,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+
+
+  tab_header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    paddingTop: 40,
+    color: "#f7f2e4",
+    verticalAlign: "middle",
+    backgroundColor: COLORS.headerBgColor,
   },
 
   list:{
@@ -179,7 +169,7 @@ const styles = StyleSheet.create({
   },
   
   title: {
-    color: COLORS.fontColor,
+    color: COLORS.headerTextColor,
     fontSize: 18,
     paddingTop: 3,
   },

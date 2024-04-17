@@ -9,10 +9,11 @@ export const PATH = {
   
 };
 
-
+const BASE_URL  = 'http://192.168.247.174:8000'
 export const URL = {
 
-    form_list: 'http://127.0.0.1:8000/form_list',
-    form_submit: 'http://127.0.0.1:8000/form_submit',
+    form_list: BASE_URL+'/form_list',
+    form_submit: BASE_URL+'/form_submit',
+    login: BASE_URL+'/api/v1/login'
   
 };
