@@ -25,8 +25,9 @@ const HEADER_SCROLL_DISTANCE = HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT;
 
 import {COLORS} from "../../constants/colors"
 import {PATH, URL} from "../../constants/global"
-API_URL     = "http://127.0.0.1:8000/form_list"
 
+//API_URL
+API_URL     = "http://192.168.100.58:8000/form_list"
 
 const downloadForms = () => {
 
