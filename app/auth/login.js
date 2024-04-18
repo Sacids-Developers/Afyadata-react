@@ -53,15 +53,12 @@ export default function Login() {
                 username: username,
                 password: password,
             };
-            console.log(payload)
-
-            console.log(JSON.stringify(payload));
 
             //API URL
-            const LOGIN_URL = URL.login;
+            const API_URL = URL.login;
 
             //post data 
-            fetch(LOGIN_URL, {
+            fetch(API_URL, {
                 method: 'POST',
                 body: JSON.stringify(payload),
                 headers: {
@@ -73,8 +70,8 @@ export default function Login() {
                 .then((responseJson) => {
                     setLoading(false);
 
-                    //logging response
-                    console.log(responseJson);
+                    //log response
+                    console.log(responseJson)
 
                     //If server response message same as Data Matched
                     if (responseJson.error === false) {
@@ -94,7 +91,6 @@ export default function Login() {
                 })
                 .catch((error) => {
                     setLoading(false);
-                    console.log("Error");
                     console.log(error);
                 });
         }

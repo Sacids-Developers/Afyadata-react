@@ -19,6 +19,7 @@ import { CustomTextInput } from '../../components/CustomTextInput';
 
 import { COLORS } from "../../constants/colors"
 import appLogo from '../../assets/images/app_logo_colored.png';
+import { URL } from '../../constants/global';
 
 export default function Register() {
     const [isLoading, setLoading] = useState(false)
@@ -41,6 +42,8 @@ export default function Register() {
     const [passwordConfirmation, setPasswordConfirmation] = useState("");
     const [errorPasswordConfirmation, setErrorPasswordConfirmation] = useState("");
 
+    const [errorMsg, setErrorMsg] = useState("");
+    const [successMsg, setSucceccMsg] = useState("");
 
     //validate fields
     const validate = () => {
@@ -58,15 +61,19 @@ export default function Register() {
 
             //create payload
             const payload = {
-                username: username,
+                first_name: firstName,
+                last_name: lastName,
+                phone: phone,
+                email: email,
                 password: password,
+                password_confirm: passwordConfirmation,
             };
 
             //API URL
-            const LOGIN_URL = "";
+            const API_URL = URL.register;
 
             //post data 
-            fetch(LOGIN_URL, {
+            fetch(API_URL, {
                 method: 'POST',
                 body: JSON.stringify(payload),
                 headers: {
@@ -78,8 +85,28 @@ export default function Register() {
                 .then((responseJson) => {
                     setLoading(false);
 
-                    //logging response
-                    console.log(responseJson);
+                    console.log(responseJson)
+
+                    //check for registration
+                    if (responseJson.error === false) {
+                        //set success msg
+                        setSucceccMsg(responseJson.success_msg)
+
+                        //clear the form
+                        setFirstName("")
+                        setLastName("")
+                        setPhone("")
+                        setEmail("")
+                        setPassword("");
+                        setPasswordConfirmation("")
+                    }else{
+                        //error message
+                        setErrorMsg(responseJson.error_msg);
+
+                        //clear only password
+                        setPassword("");
+                        setPasswordConfirmation("")
+                    }
                 })
                 .catch((error) => {
                     setLoading(false);
@@ -87,13 +114,14 @@ export default function Register() {
         }
     };
 
-
     //return view
     return (
         <SafeAreaView style={{ flex: 1, flexDirection: "column", backgroundColor: "#FFEBEE" }}>
             <View style={styles.container}>
-
                 <Image style={styles.logo} source={appLogo} />
+
+                {errorMsg != '' ? (<Text style={styles.errorMsg}>{errorMsg}</Text>) : null}
+                {successMsg != '' ? (<Text style={styles.successMsg}>{successMsg}</Text>) : null}
 
                 <View style={{ margin: 16, alignItems: 'center' }}>
                     <Text style={{ fontSize: 16, color: "#424242" }}>
@@ -122,7 +150,7 @@ export default function Register() {
                 <CustomTextInput style={styles.textInput}
                     underlineColorAndroid="transparent"
                     placeholder={('Enter phone number...')}
-                    keyboardType='default'
+                    keyboardType='phone-pad'
                     placeholderTextColor="#757575"
                     value={phone}
                     onChangeText={(val) => setPhone(val)} />
@@ -131,7 +159,7 @@ export default function Register() {
                 <CustomTextInput style={styles.textInput}
                     underlineColorAndroid="transparent"
                     placeholder={('Enter email address...')}
-                    keyboardType='default'
+                    keyboardType='email-address'
                     placeholderTextColor="#757575"
                     value={email}
                     onChangeText={(val) => setEmail(val)} />
@@ -169,7 +197,6 @@ export default function Register() {
                         <Text style={{color: "#781E14", fontSize: 16}}>Sign in</Text>
                     </Link>
                 </View>
-
             </View>
         </SafeAreaView>
     )
@@ -230,13 +257,23 @@ const styles = StyleSheet.create({
     },
 
     errorMsg: {
-        color: 'red',
-        fontSize: 13,
+        color: '#C62828',
+        fontSize: 14,
         marginTop: 10,
         padding: 10,
         textAlign: 'center',
         borderRadius: 8,
-        backgroundColor: '#FFEBEE',
+        backgroundColor: '#FFCDD2',
+    },
+
+    successMsg: {
+        color: '#388E3C',
+        fontSize: 14,
+        marginTop: 10,
+        padding: 10,
+        textAlign: 'center',
+        borderRadius: 12,
+        backgroundColor: '#C8E6C9',
     },
 
     belowText: {

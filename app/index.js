@@ -1,11 +1,9 @@
 import { Redirect, router } from "expo-router";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
 
 const createDirectory = async (dir) => {
-
-
   const path = FileSystem.documentDirectory + '/FORMS/' + dir;
   const directoryInfo = await FileSystem.getInfoAsync(path);
 
@@ -23,26 +21,25 @@ const createDirectory = async (dir) => {
 
 
 export default function index() {
+  const [token, setToken] = useState(null);
+
   useEffect(() => {
     createDirectory('DEFN');
     createDirectory('TASKS');
     createDirectory('DATA');
     createDirectory('MEDIA');
+
+    //get refresh token
+    AsyncStorage.getItem('refresh_token').then(value=>{setToken(value)})
   }, []);
 
-  try {
-    const value = AsyncStorage.getItem('refresh_token');
-    if (value !== null) {
-      console.log(value);
-      return <Redirect href="/(tabs)/updates" />
-    } else {
-      return <Redirect href="/auth/login" />
-    }
-  } catch (error) {
-    // Error retrieving data
-    console.log("No item");
+  //login token
+  console.log("My Token => " + token)
+
+  //check for token if is null
+  if (token !== null) {
+    return <Redirect href="/(tabs)/updates" />
+  } else {
     return <Redirect href="/auth/login" />
   }
-
-
 }
