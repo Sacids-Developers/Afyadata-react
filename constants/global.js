@@ -6,7 +6,6 @@ export const PATH = {
     form_defn: FileSystem.documentDirectory + 'FORMS/DEFN/',
     form_data: FileSystem.documentDirectory + 'FORMS/DATA/',
     form_media: FileSystem.documentDirectory + 'FORMS/DATA/MEDIA',
-  
 };
 
 const BASE_URL  = 'http://41.73.194.139:8040';
