@@ -17,6 +17,7 @@ import { PATH } from '../../constants/global';
 
 import BottomSheet from '@gorhom/bottom-sheet';
 
+
 import {COLORS} from "../../constants/colors"
 import { replaceVariable, saveFormToFile, validate } from '../../services/utils';
 
@@ -238,7 +239,11 @@ const renderPageLinks = () => {
         setInstanceID(tForm['meta']['uuid'])
         setForm(tForm)
         setTotalPages(tForm.pages.length)
-        setFormLang('::'+tForm['meta']['default_language'])
+        if (tForm['meta']['default_language'] in tForm['languages']){
+          setFormLang('::'+tForm['meta']['default_language'])
+        }else{
+          setFormLang('::Default')
+        }
         setLangOptions(tForm['languages'])
       }
     ).catch(
