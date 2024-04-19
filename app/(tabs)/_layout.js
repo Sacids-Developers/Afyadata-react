@@ -57,7 +57,6 @@ export default function Layout() {
                 tabBarIcon: ({ focused, color, size }) => (<AntDesign name="database"  size={18} color={color} />),
                 title: 'Data',
             }}>
-
         </Tabs.Screen>
 
         <Tabs.Screen name="settings"

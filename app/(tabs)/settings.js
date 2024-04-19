@@ -2,8 +2,8 @@
 
 import { View, Text, StyleSheet, ActivityIndicator, Pressable, SafeAreaView,  FlatList } from 'react-native'
 import React, { useEffect, useState } from 'react'
-
-import { Link } from 'expo-router'
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Link, Redirect } from 'expo-router'
 
 import { Ionicons, AntDesign, MaterialIcons } from '@expo/vector-icons';
 
@@ -12,6 +12,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 
 
+import { useStoreState } from 'pullstate';
+import { state } from '../../stores/state';
 
 let settings = [
   //{id: 6, title: 'Profile', icon: 'badge', link_to: 'hapa'},
@@ -24,13 +26,12 @@ let settings = [
 
 ]
 
-
 const more_settings = () => {
 
     const [data, setData] = useState([])
     const [isLoading, setLoading] = useState(false)
 
-    language = 'en'
+  language = 'en';
 
     const Item = ({setting}) => (
       <Link href={{
