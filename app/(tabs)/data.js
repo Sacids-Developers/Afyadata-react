@@ -75,31 +75,46 @@ const data = () => {
 
     dir.forEach((val, index) => {
       // read json file
-      FileSystem.readAsStringAsync(PATH.form_data+val).then(
-        (xForm) =>{
-          let tForm = JSON.parse(xForm)
-          console.log(val)
-          let tmp = {
-            "id": index,
-            "file_name": val,
-            "form_name": tForm.meta.title,
-            "formID": tForm.meta.form_id,
-            "version":  tForm.meta.version,
-            "status":  tForm.meta.status,
-            "uuid":  tForm.meta.uuid,
-            "title":  tForm.meta.title,
-            "updated_on":  tForm.meta.updated_on,
-            "created_on":  tForm.meta.created_on,
+      path = PATH.form_data+val
+      // check if path is a directory
+      FileSystem.getInfoAsync(path).then(
+        (fileInfo) => {
+          if(!fileInfo.isDirectory){
+            FileSystem.readAsStringAsync(PATH.form_data+val).then(
+              (xForm) =>{
+                let tForm = JSON.parse(xForm)
+                console.log(val)
+                let tmp = {
+                  "id": index,
+                  "file_name": val,
+                  "form_name": tForm.meta.title,
+                  "formID": tForm.meta.form_id,
+                  "version":  tForm.meta.version,
+                  "status":  tForm.meta.status,
+                  "uuid":  tForm.meta.uuid,
+                  "title":  tForm.meta.title,
+                  "updated_on":  tForm.meta.updated_on,
+                  "created_on":  tForm.meta.created_on,
+                }
+                files.push(tmp);
+              }
+            ).catch(
+              (e) => {
+                console.log(e)
+                setError(true)
+              }
+              
+            )  
           }
-          files.push(tmp);
         }
       ).catch(
         (e) => {
           console.log(e)
-          setError(true)
         }
         
       )  
+        
+      
     
     });
     setData(files)
