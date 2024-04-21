@@ -55,16 +55,16 @@ const data = () => {
     }
 
 
-    const mutation = useMutation({
-      mutationFn: (formData) => { submitFormData(formData) },
-      onSuccess: (data) => {
-        // update article view directly via setQueryData
-        console.log('success',data)
-      },
-      onError: (error, variables, context) => {
-        console.log('error',error);
-      },
-    });
+  const mutation = useMutation({
+    mutationFn: (formData) => { submitFormData(formData) },
+    onSuccess: (data) => {
+      // update article view directly via setQueryData
+      console.log('success',data)
+    },
+    onError: (error, variables, context) => {
+      console.log('error',error);
+    },
+  });
 
   _getFilesInDirectory = async () => {
     
@@ -76,6 +76,7 @@ const data = () => {
     dir.forEach((val, index) => {
       // read json file
       path = PATH.form_data+val
+      console.log(path)
       // check if path is a directory
       FileSystem.getInfoAsync(path).then(
         (fileInfo) => {
@@ -264,8 +265,9 @@ const data = () => {
     }
 
     if(item.status.toUpperCase() == "SENT"){
+      console.log("IN DATA",item)
       return router.push({
-        pathname: "../(form)/manageForm",
+        pathname: "../(form)/"+item.file_name,
         params: {
           form_fn: item.file_name,
           title: item.title,

@@ -17,77 +17,77 @@ const InstanceData = ({ route }) => {
   const [formLang, setFormLang] = useState('English')
 
   const { form_file_name } = route.params;
-
-    const renderFormFields = (field) => {
-        if(field.type === 'group'){
-            return (
-                <View style={styles.group_wrapper} key={field['name']}>
-                    <Text style={styles.group_label}>{field['label::'+formLang]}</Text>
-                </View>
-            )
-        }else if(field.type === 'image'){
-            return (
-              <View style={styles.item_wrapper} key={field['name']}>
-                <Text style={styles.item_label}>{field['label::'+formLang]}</Text>
-                <Image 
-                  source={{uri: field['val']['uri']}} 
-                  style={styles.image}
-                />
+  
+  const renderFormFields = (field, index) => {
+      if(field.type === 'group'){
+          return (
+              <View style={styles.group_wrapper} key={index}>
+                  <Text style={styles.group_label}>{field['label::'+formLang]}</Text>
               </View>
-            )
-        }
-        else if(field.type === 'geopoint'){
-            return  (
-              <View style={styles.item_wrapper} key={field['name']}>
-                <Text style={styles.item_label}>{field['label::'+formLang]}</Text>
-                <MapView
-                  style={{width: "100%", height: 180}}
-                  initialRegion={{
-                    latitude: -6.835305, 
-                    longitude: 37.646935,
-                    latitudeDelta: 0.0922,
-                    longitudeDelta: 0.0421,
-                  }}
-                >
-                </MapView>
+          )
+      }else if(field.type === 'image'){
+          return (
+            <View style={styles.item_wrapper} key={index}>
+              <Text style={styles.item_label}>{field['label::'+formLang]}</Text>
+              <Image 
+                source={{uri: field['val']['uri']}} 
+                style={styles.image}
+              />
+            </View>
+          )
+      }
+      else if(field.type === 'geopoint'){
+          return  (
+            <View style={styles.item_wrapper} key={index}>
+              <Text style={styles.item_label}>{field['label::'+formLang]}</Text>
+              <MapView
+                style={{width: "100%", height: 180}}
+                initialRegion={{
+                  latitude: -6.835305, 
+                  longitude: 37.646935,
+                  latitudeDelta: 0.0922,
+                  longitudeDelta: 0.0421,
+                }}
+              >
+              </MapView>
+            </View>
+          )
+      }
+      else{
+          return (
+              <View style={styles.item_wrapper} key={index}>
+                  <Text style={styles.item_label}>{field['label::'+formLang]}</Text>
+                  <Text style={styles.item_value}>{field['val']}</Text>
               </View>
-            )
-        }
-        else{
-            return (
-                <View style={styles.item_wrapper} key={field['name']}>
-                    <Text style={styles.item_label}>{field['label::'+formLang]}</Text>
-                    <Text style={styles.item_value}>{field['val']}</Text>
-                </View>
-            )
-        }
+          )
+      }
 
-    }
-    useEffect(() => {
+  }
+  useEffect(() => {
 
-        const file_path = PATH.form_data+form_file_name;
-        FileSystem.readAsStringAsync(file_path).then(
-            (xForm) =>{
+      const file_path = PATH.form_data+form_file_name;
+      FileSystem.readAsStringAsync(file_path).then(
+          (xForm) =>{
             let tForm = JSON.parse(xForm)
             setInstanceID(tForm['meta']['uuid'])
             setForm(tForm)
             setTotalPages(tForm.pages.length)
-            }
-        ).catch(
-            (e) => {console.log(e)}
-        )
-    }, []);
+          }
+      ).catch(
+          (e) => {console.log(e)}
+      )
+  }, []);
 
 
-    let myFormData = []
+  let myFormData = []
 
-    for(let i = 0; i < totalPages; i++){
+  for(let i = 0; i < totalPages; i++){
 
-        myFormData.push(renderFormFields(mForm.pages[i]))
-        for (const key in mForm.pages[i].fields){
-            myFormData.push(renderFormFields(mForm.pages[i].fields[key]))
-        }
-    }
+      myFormData.push(renderFormFields(mForm.pages[i], i))
+      for (const key in mForm.pages[i].fields){
+          myFormData.push(renderFormFields(mForm.pages[i].fields[key],key+'_'+i))
+      }
+  }
 
   return (
     <ScrollView style={styles.container}>

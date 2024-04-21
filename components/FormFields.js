@@ -91,7 +91,6 @@ export default function FormFields(props, index, update, formLang) {
         <TextInput
           inputMode="numeric"
           style={styles.input}
-          //placeholder={props.label} 
           name={props.name}
           value={props.val}
           onChangeText={(e) => { update(index, e); }}
@@ -101,16 +100,6 @@ export default function FormFields(props, index, update, formLang) {
     )
   }
 
-  else if (props.type === 'date') {
-    return (
-      <View style={styles.item_wrp} key={index}>
-        <Text style={styles.item_label}>{props['label'+formLang]}</Text>
-        {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
-        <Button style={styles.btn} onPress={getLocation} title="Set Date" />
-        <Text>selected: {props.val}</Text>
-      </View>
-    )
-  }
 
   else if (props.type === 'note') {
 
@@ -133,7 +122,7 @@ export default function FormFields(props, index, update, formLang) {
           numberOfLines={5}
           //textAlignVertical={'top'}
           style={styles.input}
-          placeholder={props['label'+formLang]}
+          //placeholder={props['label'+formLang]}
           name={props.name}
           value={props.val}
           onChangeText={(e) => { update(index, e); }}
@@ -141,6 +130,7 @@ export default function FormFields(props, index, update, formLang) {
       </View>
     )
   }
+
   else if (props.type === "geopoint") {
     return (
       <View style={styles.item_wrp} key={index}>
@@ -148,6 +138,26 @@ export default function FormFields(props, index, update, formLang) {
         {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
         <Text>{props.val} </Text>
         <Button  style={styles.btn} title="Get Location" onPress={getLocation} />
+      </View>
+    )
+  }
+
+
+  else if (props.type === 'date') {
+
+    const date = new Date(1598051730000)
+
+    return (
+      <View style={styles.item_wrp} key={index}>
+        <Text style={styles.item_label}>{props['label'+formLang]}</Text>
+        {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
+        <DateTimePicker
+          testID={props.name}
+          value={props.val == '' ? new Date() : props.val}
+          mode='date'
+          is24Hour={true}
+          onChange={(e, selectedDate) => { update(index, selectedDate); }}
+        />
       </View>
     )
   }

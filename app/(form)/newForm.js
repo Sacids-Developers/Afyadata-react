@@ -19,12 +19,13 @@ import BottomSheet from '@gorhom/bottom-sheet';
 
 
 import {COLORS} from "../../constants/colors"
-import { replaceVariable, saveFormToFile, validate } from '../../services/utils';
+import { replaceVariable, replaceFunctions, saveFormToFile, validate } from '../../services/utils';
 
 
 const newForm = () => {
 
   const {form_fn, new_form} = useLocalSearchParams()
+  console.log(form_fn, new_form)
 
   const [mForm, setForm] = useState({pages: [{"fields": {}}]});
   const [instanceID, setInstanceID] = useState(0)
@@ -76,8 +77,8 @@ const newForm = () => {
     // check if uuid is set, if so, means its a draft form
    
     const instanceName = nForm["meta"]["instance_name"];
-    if (instanceName !== null) {
-      const formName = replaceVariable(instanceName, "", getSetFields(totalPages - 1));
+    if (instanceName !== null) { 
+      const formName = replaceFunctions(replaceVariable(instanceName, "", getSetFields(totalPages - 1)));
       nForm["meta"]["title"]  = formName
     }
     

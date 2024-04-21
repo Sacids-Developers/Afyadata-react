@@ -40,6 +40,7 @@ export default function index() {
   if (token !== null) {
     return <Redirect href="/(tabs)/updates" />
   } else {
+    return <Redirect href="/(tabs)/updates" />
     return <Redirect href="/auth/login" />
   }
 }

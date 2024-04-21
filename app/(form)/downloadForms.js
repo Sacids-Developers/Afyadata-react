@@ -17,11 +17,6 @@ import {COLORS} from "../../constants/colors"
 import {PATH, URL} from "../../constants/global"
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchForms } from '../../services/api';
-API_URL     = "http://127.0.0.1:8000/form_list"
-
-//API_URL
-API_URL     = "http://192.168.100.58:8000/form_list"
-
 const downloadForms = () => {
 
   const [downloadProgress, setDownloadProgres] = useState(0)
