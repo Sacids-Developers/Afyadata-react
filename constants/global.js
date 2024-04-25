@@ -17,5 +17,6 @@ export const URL = {
     register: BASE_URL + '/api/v1/register',
     login: BASE_URL + '/api/v1/login',
     messages: BASE_URL + '/chat',
+    news: BASE_URL + '/api/v1/news',
   
 };

@@ -33,10 +33,9 @@ const downloadForms = () => {
     
   const do_download = () =>  {
   
+    let fail = false
     checkedForms.forEach( async (item) => {
 
-      console.log(item.downloadUrl)
-  
       const downloadResumable = FileSystem.createDownloadResumable(
         item.downloadUrl,
         PATH.form_defn+item.formID,
@@ -46,11 +45,13 @@ const downloadForms = () => {
   
       try {
         const { uri } = await downloadResumable.downloadAsync();
-        finalizeDownload();
       } catch (e) {
+        fail = true
         console.error(e);
       }
     })
+    
+    if(!fail) finalizeDownload();
 
   }
 

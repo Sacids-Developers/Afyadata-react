@@ -112,11 +112,7 @@ const data = () => {
         (e) => {
           console.log(e)
         }
-        
       )  
-        
-      
-    
     });
     setData(files)
     setLoading(false)
@@ -124,7 +120,6 @@ const data = () => {
 
   const handleRefresh = () => {
     _getFilesInDirectory();
-    //fetchDataAndStore(language, setData, setLoading); // Fetch data when pulled down for refresh
   };
 
   const scrollY = useSharedValue(0);
@@ -216,6 +211,9 @@ const data = () => {
             if(tForm.pages[page]['fields'][field_name]['type'] == "image"){
               jform[field_name]   = tForm.pages[page]['fields'][field_name]['val']['name']
               formData.append(field_name, tForm.pages[page]['fields'][field_name]['val'])
+            }else if(Array.isArray(tForm.pages[page]['fields'][field_name]['val'])){
+              console.log('is array')
+              jform[field_name]   = tForm.pages[page]['fields'][field_name]['val'].join(",")
             }else{
               jform[field_name]   = tForm.pages[page]['fields'][field_name]['val']
             }
@@ -223,6 +221,7 @@ const data = () => {
         }
         formData.append('data', JSON.stringify(jform))
         formData.append('meta', JSON.stringify(tForm.meta))
+        //console.log(JSON.stringify(jform,null,4))
 
         response = submitFormData(formData).then(
           (response) => {
@@ -342,7 +341,7 @@ const data = () => {
               removeClippedSubviews
               contentContainerStyle={styles.list_container}
               style={styles.list}
-              onRefresh={handleRefresh}
+              onRefresh={_getFilesInDirectory}
               refreshing={isLoading}
               
             />

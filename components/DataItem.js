@@ -4,9 +4,11 @@ import { COLORS } from '../constants/colors';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { AntDesign } from '@expo/vector-icons';
 
+import moment from 'moment';
 
 
 const DataItem = ({ item, onPress, onLongPress, isSelected }) => (
+
   <TouchableOpacity
     onPress={onPress}
     onLongPress={onLongPress}
@@ -18,7 +20,7 @@ const DataItem = ({ item, onPress, onLongPress, isSelected }) => (
       </View>
       <View style={{paddingLeft: 0,}}>
         <Text style={{fontSize: 15,color: "black" }}>{item.title} </Text>
-        <Text style={{fontSize: 12, color: "#aaa",}}>{item.uuid}</Text>
+        <Text style={{fontSize: 12, color: "#aaa",}}>Last Update: { item.updated_on == undefined ? 'N/A' : moment(item.updated_on).format('Do MMMM YY, H:mm')}</Text>
       </View>
     </View>
   </TouchableOpacity>

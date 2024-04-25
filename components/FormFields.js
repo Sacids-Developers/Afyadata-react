@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Text, View, input, TextInput, StyleSheet, Button, Alert, Image } from 'react-native'
+import { Dimensions, Text, View, input, TextInput, StyleSheet, Button, Alert, Image, Pressable } from 'react-native'
 import { Dropdown, MultiSelect } from 'react-native-element-dropdown';
 import { Input, Slider } from '@rneui/base';
 import { Ionicons, AntDesign, MaterialIcons, MaterialCommunityIcons, Entypo } from '@expo/vector-icons';
@@ -8,6 +8,8 @@ import { Camera, CameraType } from 'expo-camera';
 import * as Location from 'expo-location'
 import { COLORS } from '../constants/colors';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
+
 import { Permissions } from 'expo';
 
 export default function FormFields(props, index, update, formLang) {
@@ -19,22 +21,31 @@ export default function FormFields(props, index, update, formLang) {
   //const [permission, requestPermission] = Camera.useCameraPermissions();
 
   //capturing photo
-  const takePhoto = async () => {
+  const getPhoto = async (source) => {
 
     try {
       // Ask the user for the permission to access the camera
+      
       const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
       
       if (permissionResult.granted === false) {
         alert("You've refused to allow this appp to access your camera!");
         return;
       }
-
-      const cameraResp = await ImagePicker.launchCameraAsync({
-        allowsEditing: false,
-        mediaTypes: ImagePicker.MediaTypeOptions.All,
-        quality: 1,
-      });
+      let cameraResp = null
+      if(source == 'camera'){
+         cameraResp = await ImagePicker.launchCameraAsync({
+          allowsEditing: false,
+          mediaTypes: ImagePicker.MediaTypeOptions.All,
+          quality: 1,
+        });
+      }else{
+        cameraResp = await ImagePicker.launchImageLibraryAsync({
+          allowsEditing: false,
+          mediaTypes: ImagePicker.MediaTypeOptions.All,
+          quality: 1,
+        });
+      }
 
       if (!cameraResp.canceled) {
         result = cameraResp.assets[0];
@@ -46,6 +57,7 @@ export default function FormFields(props, index, update, formLang) {
       }
     } catch (e) {
       Alert.alert("Error Uploading Image " + e.message);
+      console.log(e.message)
     }
   };
 
@@ -69,7 +81,20 @@ export default function FormFields(props, index, update, formLang) {
     update(index, loc);
 
   };
+  
+  const getDate = () => {
 
+    DateTimePickerAndroid.open({
+      value: props.val =='' ? new Date() : new Date(props.val),
+      onChange,
+      mode: 'date',
+      is24Hour: true,
+    });
+  }
+
+  const onChange = (event, selectedDate) => {
+    update(index, selectedDate.toDateString());
+  };
 
   //returning view
   if (props.type === 'group') {
@@ -95,7 +120,7 @@ export default function FormFields(props, index, update, formLang) {
           value={props.val}
           onChangeText={(e) => { update(index, e); }}
         />
-        <Text style={styles.item_error}>{props.error ? props['constraint_message'+formLang] : " "}</Text>
+        {props.error && <Text style={styles.item_error}>{ props['constraint_message'+formLang]}</Text>}
       </View>
     )
   }
@@ -127,6 +152,7 @@ export default function FormFields(props, index, update, formLang) {
           value={props.val}
           onChangeText={(e) => { update(index, e); }}
         />
+      {props.error && <Text style={styles.item_error}>{ props['constraint_message'+formLang]}</Text>}
       </View>
     )
   }
@@ -136,8 +162,10 @@ export default function FormFields(props, index, update, formLang) {
       <View style={styles.item_wrp} key={index}>
         <Text style={styles.item_label}>{props['label'+formLang]}</Text>
         {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
-        <Text>{props.val} </Text>
-        <Button  style={styles.btn} title="Get Location" onPress={getLocation} />
+        <Text style={styles.item_text}>{props.val =='' ? "No Location Specified" : props.val.toString()} </Text>
+        <Pressable onPress={() => getLocation()} style={styles.button} >
+            <Text style={styles.button_text}>{props.val =='' ? "Set Location" : "Change Location"}</Text> 
+        </Pressable>
       </View>
     )
   }
@@ -145,31 +173,36 @@ export default function FormFields(props, index, update, formLang) {
 
   else if (props.type === 'date') {
 
-    const date = new Date(1598051730000)
-
+    console.log('date string', props.val, typeof(props.val))
     return (
       <View style={styles.item_wrp} key={index}>
         <Text style={styles.item_label}>{props['label'+formLang]}</Text>
         {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
-        <DateTimePicker
-          testID={props.name}
-          value={props.val == '' ? new Date() : props.val}
-          mode='date'
-          is24Hour={true}
-          onChange={(e, selectedDate) => { update(index, selectedDate); }}
-        />
+        <Text style={styles.item_text}>{props.val == '' ? "No Date Specified" : new Date(props.val).toDateString()} </Text>
+        <Pressable onPress={() => getDate()} style={styles.button} >
+            <Text style={styles.button_text}>Select Date</Text> 
+        </Pressable>
+        {props.error && <Text style={styles.item_error}>{ props['constraint_message'+formLang]}</Text>}
       </View>
     )
   }
 
+  
   else if (props.type === "image") {
     return (
       <View style={styles.item_wrp} key={index}>
         <Text style={styles.item_label}>{props['label'+formLang]} </Text>
         {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
-        <View style={styles.btn} ><Button title="Pick Image" color={COLORS.tabBarActiveTintColor} onPress={takePhoto} /></View>
+        <View style={{flexDirection: "row", marginTop: 5, gap: 10}}>
+          <Pressable onPress={() => getPhoto('camera')} style={styles.button} >
+            <Text style={styles.button_text}>Take Photo</Text> 
+          </Pressable>
+          <Pressable onPress={() => getPhoto('gallery')} style={styles.button} >
+            <Text style={styles.button_text}>Pick Image</Text> 
+          </Pressable>
+        </View>
         {props.val != '' && (
-          <Image source={{ uri: props.val.uri }} style={{ width: 200, height: 200 }} />
+          <View style={{paddingVertical: 3}}><Image source={{ uri: props.val.uri }} style={styles.image} /></View>
         )}
       </View>
     )
@@ -199,6 +232,7 @@ export default function FormFields(props, index, update, formLang) {
           value={props.val}
           onChange={(e) => { update(index, e.nativeEvent.text) }}
         />
+        {props.error && <Text style={styles.item_error}>{ props['constraint_message'+formLang]}</Text>}
       </View>
     )
   }
@@ -215,6 +249,7 @@ export default function FormFields(props, index, update, formLang) {
           value={props.val}
           onChangeText={text => update(index, text)}
         />
+        {props.error && <Text style={styles.item_error}>{ props['constraint_message'+formLang]}</Text>}
       </View>
     )
   }
@@ -237,6 +272,7 @@ export default function FormFields(props, index, update, formLang) {
           step={1}
           allowTouchTrack
         />
+        {props.error && <Text style={styles.item_error}>{ props['constraint_message'+formLang]}</Text>}
       </View>
     )
 
@@ -289,6 +325,7 @@ export default function FormFields(props, index, update, formLang) {
           )}
           renderItem={renderItem}
         />
+        {props.error && <Text style={styles.item_error}>{ props['constraint_message'+formLang]}</Text>}
       </View>
     )
 
@@ -324,6 +361,7 @@ export default function FormFields(props, index, update, formLang) {
           renderLeftIcon={() => (<AntDesign style={styles.icon} color="black" name="Safety" size={20} />)}
           selectedStyle={styles.selectedStyle}
         />
+        {props.error && <Text style={styles.item_error}>{ props['constraint_message'+formLang]}</Text>}
       </View>
     );
   }
@@ -335,6 +373,7 @@ export default function FormFields(props, index, update, formLang) {
         <Text style={styles.item_label}>{props['label'+formLang]}</Text>
         {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
         <TextInput style={styles.input} placeholder={props['label'+formLang]} name={props.name} value={props.val} onChangeText={(e) => { update(index, e); }} />
+        {props.error && <Text style={styles.item_error}>{ props['constraint_message'+formLang]}</Text>}
       </View>
     )
 
@@ -350,19 +389,27 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   item_wrp: {
-    paddingVertical: 5,
+    paddingVertical: 7,
   },
   item_label: {
-    fontSize: 18,
+    fontSize: 16,
+    fontWeight: "bold",
   },
   item_hint: {
-    fontSize: 15,
+    fontSize: 14,
     fontStyle: "italic",
   },
   item_error: {
-    fontSize: 15,
+    fontSize: 14,
     fontStyle: "italic",
     color: "red",
+  },
+  item_text:{
+    fontSize: 14,
+    paddingVertical:3,
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
   },
 
   group_label: {
@@ -373,14 +420,9 @@ const styles = StyleSheet.create({
 
 
   note_label: {
-    fontSize: 18,
+    fontSize: 14,
     fontStyle: "italic",
     color: "#444",
-  },
-  note_label: {
-    fontSize: 16,
-    fontStyle: "italic",
-    color: "red",
   },
 
   item_input: {
@@ -406,20 +448,36 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.backgroundColor,
     padding: 10,
   },
+  button:{
+    paddingVertical: 8, 
+    paddingHorizontal: 20, 
+    borderRadius: 5,
+    flex: 1,
+    backgroundColor: COLORS.primaryColor,
+  },
+
+  button_text:{
+    color: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
+    fontSize: 16,
+  },
 
   input: {
     height: 40,
     marginVertical: 4,
     borderWidth: 1,
     borderColor: COLORS.borderColor,
-    padding: 10,
+    padding: 10, 
+    borderRadius: 5,
     backgroundColor: 'transparent',
   },
   placeholderStyle: {
     fontSize: 14,
   },
   selectedTextStyle: {
-    fontSize: 12,
+    fontSize: 14,
   },
   iconStyle: {
     width: 20,
@@ -437,11 +495,18 @@ const styles = StyleSheet.create({
   },
 
   select_item_text: {
-    paddingVertical: 1,
+    paddingVertical: 4,
     paddingHorizontal:2,
+    fontSize: 16,
   },
   select_item_wrp:{
     paddingVertical: 1,
+  },
+
+  image: {
+    marginTop: 5,
+    width: Dimensions.get('window').width, // Set the width to 80% of the screen width
+    aspectRatio: 1, // Maintain the aspect ratio of the image
   },
 
 

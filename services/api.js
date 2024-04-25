@@ -4,7 +4,6 @@ import { URL } from '../constants/global';
 
 export const fetchForms = async () => {
   const formListEndpoint = URL.form_list;
-  console.log(formListEndpoint)
   const response = await axios.get(formListEndpoint);
   return response.data;
 }
@@ -47,5 +46,15 @@ export const submitFormData = async (formData) => {
     console.error('Error submitting form data:', error);
     return error
   }
+}
+
+
+export const fetchNews = async () => {
+
+  const fetchNewsEndpoint = URL.news;
+  console.log("fetch news",fetchNewsEndpoint)
+  const response = await axios.get(fetchNewsEndpoint);
+  const json = await response.data
+  return json;
 }
 
