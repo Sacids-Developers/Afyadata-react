@@ -11,9 +11,9 @@ export const PATH = {
 const BASE_URL  = 'http://41.73.194.139:8040';
 
 export const URL = {
-    form_list: BASE_URL + '/form_list',
-    form_submit: BASE_URL + '/form_submit',
+    base_url: BASE_URL,
     register: BASE_URL + '/api/v1/register',
     login: BASE_URL + '/api/v1/login',
-  
+    form_list: BASE_URL + '/form_list',
+    form_submit: BASE_URL + '/form_submit',
 };

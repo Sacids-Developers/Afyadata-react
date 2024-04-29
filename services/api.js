@@ -9,8 +9,6 @@ export const fetchForms = async () => {
   return response.data;
 }
 
-
-
 export const submitFormData = async (formData) => {
   try {
     const formSubmitEndpoint = URL.form_submit;
@@ -29,4 +27,5 @@ export const submitFormData = async (formData) => {
     return error
   }
 }
+
 
