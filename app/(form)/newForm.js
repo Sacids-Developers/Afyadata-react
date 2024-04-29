@@ -10,7 +10,7 @@ import * as FileSystem from 'expo-file-system';
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 
-import { MaterialCommunityIcons, MaterialIcons, Entypo } from '@expo/vector-icons';
+import { MaterialCommunityIcons, MaterialIcons, Entypo, Ionicons } from '@expo/vector-icons';
 
 import { useLocalSearchParams, useNavigation } from 'expo-router'
 import { PATH } from '../../constants/global';
@@ -19,12 +19,13 @@ import BottomSheet from '@gorhom/bottom-sheet';
 
 
 import {COLORS} from "../../constants/colors"
-import { replaceVariable, saveFormToFile, validate } from '../../services/utils';
+import { replaceVariable, replaceFunctions, saveFormToFile, validate } from '../../services/utils';
 
 
 const newForm = () => {
 
   const {form_fn, new_form} = useLocalSearchParams()
+  console.log(form_fn, new_form)
 
   const [mForm, setForm] = useState({pages: [{"fields": {}}]});
   const [instanceID, setInstanceID] = useState(0)
@@ -59,27 +60,42 @@ const newForm = () => {
     setForm(updatedForm);
   };
 
+  const updateMetaField = (columnName, newValue) => {
+    const updatedForm = { ...mForm };
+    updatedForm["meta"][columnName] = newValue;
+    setForm(updatedForm);
+  }
+
   const updatePageRelevance = (pageNumber, isRelevant) => {
     const updatedForm = { ...mForm };
     updatedForm.pages[pageNumber].is_relevant = isRelevant;
     setForm(updatedForm);
   };
 
+  const setFormName = () => {
+
+    // check if mform is set
+    if (!mForm['meta']) {
+      return "Untitled Form";
+    }
+    console.log(mForm)
+    const formName = replaceFunctions(replaceVariable(mForm["meta"]["instance_name"], "", getSetFields(totalPages - 1)));
+    updateMetaField("title", formName)
+    
+  }
 
 
   const submitForm = (status) => {
-    //event.preventDefault();
-    //console.log(JSON.stringify(mForm))
 
     const nForm = {...mForm} // shallow copy
 
     // check if uuid is set, if so, means its a draft form
    
-    const instanceName = nForm["meta"]["instance_name"];
-    if (instanceName !== null) {
-      const formName = replaceVariable(instanceName, "", getSetFields(totalPages - 1));
-      nForm["meta"]["title"]  = formName
-    }
+    //const instanceName = nForm["meta"]["instance_name"];
+    //if (instanceName !== null) { 
+    //  const formName = replaceFunctions(replaceVariable(instanceName, "", getSetFields(totalPages - 1)));
+    //  nForm["meta"]["title"]  = formName
+    //}
     
     nForm["meta"]["status"] = status; // update index
     nForm["meta"]["updated_on"] = new Date().toISOString();
@@ -125,6 +141,9 @@ const goToNextPage = (event) => {
 
   if (isValid) {
     for (let nextPageNum = page + 1; nextPageNum <= totalPages; nextPageNum++) {
+
+      // update the form Name
+      setFormName();
       if(nextPageNum == totalPages){
         setPage(nextPageNum);
         break;
@@ -152,12 +171,12 @@ const goToNextPage = (event) => {
     const relevantExpression = mForm.pages[pageNumber]?.relevant;
 
     if (relevantExpression === null || relevantExpression === '' || relevantExpression === undefined) {
-      updatePageRelevance(pageNumber, true);
+      //updatePageRelevance(pageNumber, true);
       return true;
     }
 
     const isPageRelevantBasedOnFields = validate(relevantExpression, "", getSetFields(pageNumber));
-    updatePageRelevance(pageNumber, !isPageRelevantBasedOnFields);
+    //updatePageRelevance(pageNumber, !isPageRelevantBasedOnFields);
     return isPageRelevantBasedOnFields;
   };
 
@@ -204,7 +223,7 @@ const renderPageLinks = () => {
     <MaterialIcons name="navigate-before" size={36} color={COLORS.fontColor} onPress={goToPreviousPage}
     />
   ) : (
-    <View />
+    <View style={{width: 36,}}/>
   );
 
   const nextButton = page < totalPages ? (
@@ -216,6 +235,9 @@ const renderPageLinks = () => {
   return (
     <View style={styles.page_links}>
       {prevButton}
+      <Pressable onPress={() => submitForm('draft')} style={{padding: 10}} >
+        <Text style={{fontSize:14, fontWeight: 'bold',}}>Save Draft</Text> 
+      </Pressable>
       {nextButton}
     </View>
   );
@@ -255,11 +277,13 @@ const renderPageLinks = () => {
   let myFormData = []
   if(page < totalPages){
 
-    myFormData.push(FormFields(mForm.pages[page],page,0,formLang))
-    for (const key in mForm.pages[page].fields){ 
-      // check relevance
-      if(isFieldRelevant(page, key)){
-        myFormData.push(FormFields(mForm.pages[page].fields[key], key, updateField, formLang)) 
+    if(isPageRelevant(page)){
+      myFormData.push(FormFields(mForm.pages[page],page,0,formLang))
+      for (const key in mForm.pages[page].fields){ 
+        // check relevance
+        if(isFieldRelevant(page, key)){
+          myFormData.push(FormFields(mForm.pages[page].fields[key], key, updateField, formLang)) 
+        }
       }
     }
   }
@@ -291,7 +315,7 @@ const renderPageLinks = () => {
             page < totalPages ? ( 
 
               <View style={{flex: 1}}>
-                <ScrollView style={{flex: 1, padding: 10, backgroundColor: "white", }}>
+                <ScrollView style={{flex: 1, paddingHorizontal: 10, backgroundColor: "white", }}>
                   {myFormData}
                 </ScrollView>
                 <View style={{backgroundColor: "white"}}>
@@ -306,26 +330,24 @@ const renderPageLinks = () => {
                     <Text style={{fontWeight: "bold", fontSize: 20, paddingBottom: 20}}>
                       You are at the end of 
                     </Text>
+                    <TextInput
+                      multiline={false}
+                      style={styles.input}
+                      value={ mForm['meta'] == undefined ? "Untitled Form" : mForm['meta']['title']}
+                      onChangeText={(e) => { updateMetaField('title', e); }}
+                    />
                     <View style={{flexDirection: "row", backgroundColor: "#bde1f2", borderRadius: 10, padding: 15, fontSize: 16}}>
                       <MaterialCommunityIcons name="information-outline" size={24} color="black" />
                       <Text style={{paddingHorizontal: 10}}>Once the message is sent, you won't have the option to make edits. To make changes, "Save as Draft" until you're prepared to send it.</Text>
                     </View>
                   </View>
                   <View style={{flexDirection: "row", marginTop: 30, justifyContent: "space-around" }}>
-                    <TouchableHighlight style={[styles.button]}>
-                      <Button 
-                        onPress={() => submitForm('draft')} 
-                        title="Save as Draft" 
-                        color="maroon" 
-                      />
-                    </TouchableHighlight>
-                    <TouchableHighlight style={[styles.button, {backgroundColor: "maroon"}]} >
-                      <Button
-                        onPress={() => submitForm('Finalized')} 
-                        title="Finalize Form" 
-                        color="white" 
-                      />
-                    </TouchableHighlight>
+                    <Pressable onPress={() => submitForm('draft')} style={[styles.button, {backgroundColor: "white"}]} >
+                      <Text style={{color: "black", fontSize: 18 }}>Save as Draft</Text> 
+                    </Pressable>
+                    <Pressable onPress={() => submitForm('Finalized')} style={[styles.button, {backgroundColor: "maroon"}]} >
+                      <Text style={{color: "white", fontSize: 18 }}>Finalize Form</Text> 
+                    </Pressable>
                   </View>
                 </View>
               </View>
@@ -375,10 +397,20 @@ const styles = StyleSheet.create({
   button: {
     borderWidth:1, 
     borderColor: "maroon", 
-    paddingVertical: 3, 
-    paddingHorizontal: 10, 
+    paddingVertical: 12, 
+    paddingHorizontal: 20, 
     borderRadius: 20,
     backgroundColor: "transparent",
+  },
+
+  input: {
+    height: 40,
+    marginVertical: 4,
+    borderWidth: 1,
+    borderColor: COLORS.borderColor,
+    padding: 10, 
+    borderRadius: 5,
+    backgroundColor: 'transparent',
   },
 
   bs_item_wrp:{

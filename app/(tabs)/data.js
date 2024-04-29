@@ -55,16 +55,16 @@ const data = () => {
     }
 
 
-    const mutation = useMutation({
-      mutationFn: (formData) => { submitFormData(formData) },
-      onSuccess: (data) => {
-        // update article view directly via setQueryData
-        console.log('success',data)
-      },
-      onError: (error, variables, context) => {
-        console.log('error',error);
-      },
-    });
+  const mutation = useMutation({
+    mutationFn: (formData) => { submitFormData(formData) },
+    onSuccess: (data) => {
+      // update article view directly via setQueryData
+      console.log('success',data)
+    },
+    onError: (error, variables, context) => {
+      console.log('error',error);
+    },
+  });
 
   _getFilesInDirectory = async () => {
     
@@ -76,6 +76,7 @@ const data = () => {
     dir.forEach((val, index) => {
       // read json file
       path = PATH.form_data+val
+      console.log(path)
       // check if path is a directory
       FileSystem.getInfoAsync(path).then(
         (fileInfo) => {
@@ -111,11 +112,7 @@ const data = () => {
         (e) => {
           console.log(e)
         }
-        
       )  
-        
-      
-    
     });
     setData(files)
     setLoading(false)
@@ -123,7 +120,6 @@ const data = () => {
 
   const handleRefresh = () => {
     _getFilesInDirectory();
-    //fetchDataAndStore(language, setData, setLoading); // Fetch data when pulled down for refresh
   };
 
   const scrollY = useSharedValue(0);
@@ -215,6 +211,9 @@ const data = () => {
             if(tForm.pages[page]['fields'][field_name]['type'] == "image"){
               jform[field_name]   = tForm.pages[page]['fields'][field_name]['val']['name']
               formData.append(field_name, tForm.pages[page]['fields'][field_name]['val'])
+            }else if(Array.isArray(tForm.pages[page]['fields'][field_name]['val'])){
+              console.log('is array')
+              jform[field_name]   = tForm.pages[page]['fields'][field_name]['val'].join(",")
             }else{
               jform[field_name]   = tForm.pages[page]['fields'][field_name]['val']
             }
@@ -222,6 +221,7 @@ const data = () => {
         }
         formData.append('data', JSON.stringify(jform))
         formData.append('meta', JSON.stringify(tForm.meta))
+        //console.log(JSON.stringify(jform,null,4))
 
         response = submitFormData(formData).then(
           (response) => {
@@ -264,8 +264,9 @@ const data = () => {
     }
 
     if(item.status.toUpperCase() == "SENT"){
+      console.log("IN DATA",item)
       return router.push({
-        pathname: "../(form)/manageForm",
+        pathname: "../(form)/"+item.file_name,
         params: {
           form_fn: item.file_name,
           title: item.title,
@@ -340,7 +341,7 @@ const data = () => {
               removeClippedSubviews
               contentContainerStyle={styles.list_container}
               style={styles.list}
-              onRefresh={handleRefresh}
+              onRefresh={_getFilesInDirectory}
               refreshing={isLoading}
               
             />

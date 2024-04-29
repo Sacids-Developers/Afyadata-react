@@ -39,6 +39,9 @@ function processFunction(str, func){
 		case 'count-selected':
 			break;
 
+		case 'concat':
+			return concatStrings(args)
+
 		case 'string-length':
 			// check if its an available field
 			// check if args is null
@@ -49,6 +52,11 @@ function processFunction(str, func){
 		
 	}
 
+}
+
+function concatStrings(input) {
+  const parts = input.split(',').map(part => part.trim().replace(/^"|"$|^'|'$/g, ''));
+  return parts.join('');
 }
 
 function getTodaysDateAsString() {
@@ -72,9 +80,9 @@ export function replaceVariable(input, key, fields) {
 }
 
 
-function replaceFunctions(input) {
+export function replaceFunctions(input) {
 
-	const pattern = /(selected|date|today|count-selected|string-length|regex)\((.*?)\)/g;
+	const pattern = /(selected|date|today|count-selected|string-length|regex|concat)\((.*?)\)/g;
     const output = input.replace(pattern, (match, variable) => {
 		console.log('patern :', match, variable)
         return variable ? processFunction(match, variable) : variable;

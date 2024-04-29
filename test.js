@@ -2,7 +2,9 @@ var Parser = require('expr-eval').Parser;
 var parser = new Parser();
 
 //let str = '.  >= today()'
-let str = true
+//let str = true
+
+let str = 'concat("Hello", " - ", ${name})'
 
 function processVariable(variable) {
     // Example processing function, e.g., converting the variable to uppercase
@@ -32,7 +34,9 @@ function processFunction(str, func){
 			break;
 		case 'date':
 			return args
-			break;
+		case 'concat':
+			return concat_str(args)
+
 		case 'today':
 			return "'"+getTodaysDateAsString()+"'"
 
@@ -46,6 +50,12 @@ function processFunction(str, func){
 	}
 
 }
+
+function concat_str(input){
+	const parts = input.split(',').map(part => part.trim().replace(/^"|"$/g, ''));
+	return parts.join('');
+}
+
 
 function getTodaysDateAsString() {
     const today = new Date();
@@ -70,7 +80,7 @@ function replaceVariable(input) {
 
 function replaceFunctions(input) {
 
-	const pattern = /(selected|date|today|count-selected|string-length|regex)\((.*?)\)/g;
+	const pattern = /(selected|date|today|count-selected|string-length|regex|concat)\((.*?)\)/g;
     const output = input.replace(pattern, (match, variable) => {
 		console.log('patern :', match, variable)
         return variable ? processFunction(match, variable) : variable;
@@ -87,11 +97,12 @@ if (typeof str !== 'string') {
 	console.log(Boolean(str))
 	return Boolean(str)
 }
+
 const processedString = replaceVariable(str, processVariable);
 console.log(processedString); // Output: This is a VARIABLE example
 
 const expression	= replaceFunctions(processedString)
 console.log(expression)
 
-const result = parser.evaluate(expression);
-console.log(result)
+//const result = parser.evaluate(expression);
+//console.log(result)

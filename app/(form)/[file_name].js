@@ -12,12 +12,12 @@ import InstanceChat from '../(instance)/instanceChat';
 
 const manageForm = () => {
   
-  const {form_fn, title} = useGlobalSearchParams()
+  const {file_name} = useLocalSearchParams()
 
-  console.log("MANAGE FORM", form_fn, title)
+  console.log("MANAGE FORM", file_name)
 
   const dataProps = {
-    form_file_name: form_fn
+    form_file_name: file_name
   };
 
   const Tab = createMaterialTopTabNavigator();
@@ -26,7 +26,7 @@ const manageForm = () => {
     <SafeAreaView style={{ flex: 1, backgroundColor: "white"}}>
       <Stack.Screen options={    
           {
-            title: title,
+            title: 'title',
             headerTintColor: COLORS.headerTextColor,
             headerStyle: {
               backgroundColor: COLORS.headerBgColor,
@@ -47,7 +47,11 @@ const manageForm = () => {
           component={InstanceData}
           initialParams={dataProps}
         />
-        <Tab.Screen name="Chat" component={InstanceChat} />
+        <Tab.Screen 
+          name="Chat" 
+          component={InstanceChat} 
+          initialParams={dataProps}
+        />
       </Tab.Navigator>
     </SafeAreaView>
   )

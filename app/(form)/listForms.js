@@ -31,10 +31,44 @@ const listForms = () => {
     
     setLoading(true)
     let files = [];
-    let dir = await FileSystem.readDirectoryAsync(PATH.form_defn);
+    const directoryUri = PATH.form_defn;
+    let dir = await FileSystem.readDirectoryAsync(directoryUri);
 
+    let index = 0
+    for(const file of dir){
+
+      const fileUri = `${directoryUri}/${file}`;
+      const fileInfo = await FileSystem.getInfoAsync(fileUri);
+      console.log('ze info',fileInfo)
+      const modificationTime = new Date(fileInfo.modificationTime);
+      const fileContents = await FileSystem.readAsStringAsync(fileUri);
+
+      let tForm = JSON.parse(fileContents)
+      let tmp = {
+        "id": index++,
+        "file_name": file,
+        "form_name": tForm.meta.name,
+        "formID": tForm.meta.id,
+        "uuid": file,
+        "version":  tForm.meta.version,
+        "status":  tForm.meta.title,
+        "title":  tForm.meta.title,
+        "updated_on":  modificationTime,
+      }
+      console.log(tmp)
+      files.push(tmp);
+      //console.log(`File ${file} last modified at:`, modificationTime);
+      //console.log(`Contents of ${file}:`, fileContents);
+
+    }
+
+    setData(files)
+    setLoading(false)
+
+    return 
     dir.forEach((val, index) => {
       // read json file
+
       FileSystem.readAsStringAsync(PATH.form_defn+val).then(
         (xForm) =>{
           let tForm = JSON.parse(xForm)
@@ -60,6 +94,64 @@ const listForms = () => {
     
     });
     console.log(files)
+    setData(files)
+    setLoading(false)
+  }
+
+
+  _getFilesInDirectory1 = async () => {
+    
+    setLoading(true)
+    //setError(false)
+    let files = [];
+    
+    FileSystem.readDirectoryAsync(PATH.form_defn).then(
+      (dir) => {            
+        dir.forEach((val, index) => {
+          // read json file
+          path = PATH.form_defn+val
+          // check if path is a directory
+          FileSystem.getInfoAsync(path).then(
+            (fileInfo) => {
+              if(!fileInfo.isDirectory){
+                modificationTime = fileInfo.modificationTime ? new Date(fileInfo.modificationTime).toDateString() : undefined
+                FileSystem.readAsStringAsync(path).then(
+                  (xForm) =>{
+                    let tForm = JSON.parse(xForm)
+                    let tmp = {
+                      "id": index,
+                      "file_name": val,
+                      "form_name": tForm.meta.title,
+                      "formID": tForm.meta.form_id,
+                      "version":  tForm.meta.version,
+                      "status":  tForm.meta.title,
+                      "title":  tForm.meta.title,
+                      "updated_on":  modificationTime, //fileInfo.modificationTime,
+                    }
+                    files.push(tmp);
+                  }
+                ).catch(
+                  (e) => {
+                    console.log(e)
+                    setError(true)
+                  }
+                  
+                )  
+              }
+            }
+          ).catch(
+            (e) => {
+              console.log(e)
+            }
+          )  
+        });
+      }
+    ).catch(
+      (e) => {
+        console.log(e)
+      }
+    )
+
     setData(files)
     setLoading(false)
   }
