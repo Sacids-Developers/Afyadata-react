@@ -41,6 +41,6 @@ export default function index() {
     return <Redirect href="/(tabs)/updates" />
   } else {
     return <Redirect href="/(tabs)/updates" />
-    return <Redirect href="/auth/login" />
+    //return <Redirect href="/auth/login" />
   }
 }

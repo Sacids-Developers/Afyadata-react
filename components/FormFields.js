@@ -152,7 +152,7 @@ export default function FormFields(props, index, update, formLang) {
           value={props.val}
           onChangeText={(e) => { update(index, e); }}
         />
-      {props.error && <Text style={styles.item_error}>{ props['constraint_message'+formLang]}</Text>}
+      {props.error && <Text style={styles.item_error}>{ props['constraint_message'+formLang] != null ? props['constraint_message'+formLang] : "Input Required"}</Text>}
       </View>
     )
   }
@@ -166,6 +166,7 @@ export default function FormFields(props, index, update, formLang) {
         <Pressable onPress={() => getLocation()} style={styles.button} >
             <Text style={styles.button_text}>{props.val =='' ? "Set Location" : "Change Location"}</Text> 
         </Pressable>
+        {props.error && <Text style={styles.item_error}>{ props['constraint_message'+formLang] != null ? props['constraint_message'+formLang] : "Input Required"}</Text>}
       </View>
     )
   }
@@ -173,7 +174,7 @@ export default function FormFields(props, index, update, formLang) {
 
   else if (props.type === 'date') {
 
-    console.log('date string', props.val, typeof(props.val))
+    //console.log('date string', props.val, typeof(props.val))
     return (
       <View style={styles.item_wrp} key={index}>
         <Text style={styles.item_label}>{props['label'+formLang]}</Text>
@@ -182,7 +183,7 @@ export default function FormFields(props, index, update, formLang) {
         <Pressable onPress={() => getDate()} style={styles.button} >
             <Text style={styles.button_text}>Select Date</Text> 
         </Pressable>
-        {props.error && <Text style={styles.item_error}>{ props['constraint_message'+formLang]}</Text>}
+        {props.error && <Text style={styles.item_error}>{ props['constraint_message'+formLang] != null ? props['constraint_message'+formLang] : "Input Required"}</Text>}
       </View>
     )
   }
@@ -319,7 +320,11 @@ export default function FormFields(props, index, update, formLang) {
           placeholder="Select item"
           searchPlaceholder="Search..."
           value={props.val}
-          onChange={(element) => update(index, element.value)}
+          onChange={
+            (element) => {
+              update(index, element.name)
+            }
+          }
           renderLeftIcon={() => (
             <AntDesign style={styles.icon} color="black" name="Safety" size={20} />
           )}

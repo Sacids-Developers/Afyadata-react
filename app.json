@@ -22,7 +22,14 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.FOREGROUND_SERVICE"
+      ],
+      "package": "com.mchizani.afyadata"
     },
     "web": {
       "bundler": "metro",
@@ -32,7 +39,7 @@
     "plugins": [
       "expo-router",
       [
-      "expo-image-picker",
+        "expo-image-picker",
         {
           "photosPermission": "Allow $(PRODUCT_NAME) to access your photo",
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera"
@@ -43,10 +50,26 @@
         {
           "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
         }
+      ],
+      [
+        "expo-build-properties", 
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "c94b32a3-f8f0-4d98-8b5e-ec46160464be"
+      }
     }
   }
 }

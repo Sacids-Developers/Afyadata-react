@@ -76,7 +76,7 @@ const data = () => {
     dir.forEach((val, index) => {
       // read json file
       path = PATH.form_data+val
-      console.log(path)
+      // console.log(path)
       // check if path is a directory
       FileSystem.getInfoAsync(path).then(
         (fileInfo) => {
@@ -84,7 +84,7 @@ const data = () => {
             FileSystem.readAsStringAsync(PATH.form_data+val).then(
               (xForm) =>{
                 let tForm = JSON.parse(xForm)
-                console.log(val)
+                //console.log(val)
                 let tmp = {
                   "id": index,
                   "file_name": val,
@@ -195,7 +195,7 @@ const data = () => {
   }
 
   const sendFormToServer = (item) => {
-    console.log('item',item)
+    //console.log('item',item)
     // open file from async storage
     const file_path = PATH.form_data+item.file_name;
     FileSystem.readAsStringAsync(file_path).then(
@@ -212,7 +212,7 @@ const data = () => {
               jform[field_name]   = tForm.pages[page]['fields'][field_name]['val']['name']
               formData.append(field_name, tForm.pages[page]['fields'][field_name]['val'])
             }else if(Array.isArray(tForm.pages[page]['fields'][field_name]['val'])){
-              console.log('is array')
+              //console.log('is array')
               jform[field_name]   = tForm.pages[page]['fields'][field_name]['val'].join(",")
             }else{
               jform[field_name]   = tForm.pages[page]['fields'][field_name]['val']
@@ -264,7 +264,7 @@ const data = () => {
     }
 
     if(item.status.toUpperCase() == "SENT"){
-      console.log("IN DATA",item)
+      //console.log("IN DATA",item)
       return router.push({
         pathname: "../(form)/"+item.file_name,
         params: {
