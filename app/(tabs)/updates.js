@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react'
 
 
 import { fetchDataAndStore, retrieveStoredData } from '../../services/updates'
-import { getUpdates } from '../../services/cpb'
+import { fetchNews } from '../../services/api';
 
 import { Ionicons, Octicons, Entypo, MaterialCommunityIcons } from '@expo/vector-icons';
 
@@ -28,7 +28,7 @@ import { FAB } from '@rneui/themed';
 
 const updates = () => {
 
-  const {isPending, isError, data, error} = useQuery({ queryKey: ['movies'], queryFn: getUpdates })
+  const {isPending, isError, data, error} = useQuery({ queryKey: ['news'], queryFn: fetchNews })
 
   const scrollY = useSharedValue(0);
   const onScroll = useAnimatedScrollHandler((event) => {

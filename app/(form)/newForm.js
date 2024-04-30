@@ -25,7 +25,7 @@ import { replaceVariable, replaceFunctions, saveFormToFile, validate } from '../
 const newForm = () => {
 
   const {form_fn, new_form} = useLocalSearchParams()
-  console.log(form_fn, new_form)
+  //console.log(form_fn, new_form)
 
   const [mForm, setForm] = useState({pages: [{"fields": {}}]});
   const [instanceID, setInstanceID] = useState(0)
@@ -56,7 +56,9 @@ const newForm = () => {
   };
   const updateField = (fieldIndex, newValue, columnName = 'val') => {
     const updatedForm = { ...mForm };
+    console.log('UPDATE FIELD',fieldIndex,newValue,columnName)
     updatedForm.pages[page].fields[fieldIndex][columnName] = newValue;
+    //updatedForm.pages[page].fields[fieldIndex]['error'] = false;
     setForm(updatedForm);
   };
 
@@ -78,7 +80,7 @@ const newForm = () => {
     if (!mForm['meta']) {
       return "Untitled Form";
     }
-    console.log(mForm)
+    //console.log(mForm)
     const formName = replaceFunctions(replaceVariable(mForm["meta"]["instance_name"], "", getSetFields(totalPages - 1)));
     updateMetaField("title", formName)
     
@@ -126,19 +128,32 @@ const goToNextPage = (event) => {
     const constraint = currentPageFields[fieldKey]['constraint'];
     const isRequired = currentPageFields[fieldKey]['required'];
 
-    if (constraint == null || constraint === '' || isRequired == null || isRequired === '' || isRequired === 'no') continue;
-
+    //console.log('GO TO NEXT PAGE',fieldKey,constraint,isRequired)
+    //if ((constraint == null || constraint === '') && (isRequired === null || isRequired === '' || isRequired === 'no')) continue;
+    
     const fieldValue = currentPageFields[fieldKey]['val'];
-    if (fieldValue == null || fieldValue === '') {
-      isValid = false;
-      updateField(fieldKey, true, 'error');
-    } else {
+    console.log('FIELD FAVA',fieldKey,fieldValue)
+
+    if(isRequired != null && isRequired.toLowerCase() === 'yes'){
+
+      if (fieldValue == null || fieldValue === '') {
+        console.log('IS REQUIRED',fieldKey,fieldValue)
+        isValid = false;
+        updateField(fieldKey, true, 'error');
+        continue
+      }else{
+        updateField(fieldKey, false, 'error');
+      }
+    }
+    
+    if (!(constraint === null || constraint === '')){
+      console.log('IS CONSTRAINT',fieldKey,fieldValue, constraint)
       const isFieldValid = validate(constraint, fieldKey, currentPageFields);
       updateField(fieldKey, !isFieldValid, 'error');
       isValid = isFieldValid && isValid;
     }
-  }
-
+  } 
+    
   if (isValid) {
     for (let nextPageNum = page + 1; nextPageNum <= totalPages; nextPageNum++) {
 
@@ -159,7 +174,9 @@ const goToNextPage = (event) => {
   const goToPreviousPage = () => {
     let previousPageNumber = page - 1;
     while (previousPageNumber >= 0) {
-      if (mForm.pages[previousPageNumber].is_relevant !== false) {
+
+
+      if (isPageRelevant(previousPageNumber)) {
         setPage(previousPageNumber);
         break;
       }
@@ -168,12 +185,15 @@ const goToNextPage = (event) => {
   }
 
   const isPageRelevant = (pageNumber) => {
-    const relevantExpression = mForm.pages[pageNumber]?.relevant;
+    const relevantExpression = mForm.pages[pageNumber].relevant;
+
+    //console.log('IS PAGE RELEVANT',relevantExpression,pageNumber,JSON.stringify(mForm.pages[pageNumber],null,4))
 
     if (relevantExpression === null || relevantExpression === '' || relevantExpression === undefined) {
       //updatePageRelevance(pageNumber, true);
       return true;
     }
+
 
     const isPageRelevantBasedOnFields = validate(relevantExpression, "", getSetFields(pageNumber));
     //updatePageRelevance(pageNumber, !isPageRelevantBasedOnFields);
@@ -196,11 +216,12 @@ const goToNextPage = (event) => {
 
 const isFieldRelevant = (pageNumber, fieldName) => {
   const { fields } = mForm.pages[pageNumber];
-  const fieldRelevance = fields[fieldName]?.relevant;
+  const fieldRelevance = fields[fieldName].relevant;
 
-  if (fieldRelevance !== false) {
-    return true
+  if (fieldRelevance === null || fieldRelevance === '' || fieldRelevance === undefined) {
+    return true;
   }
+  //console.log('is field relevant func ', fieldName, fieldRelevance)
   return validate(fieldRelevance, fieldName, getSetFields(pageNumber));
 
 };
@@ -278,9 +299,11 @@ const renderPageLinks = () => {
   if(page < totalPages){
 
     if(isPageRelevant(page)){
+      console.log('is page relevant')
       myFormData.push(FormFields(mForm.pages[page],page,0,formLang))
       for (const key in mForm.pages[page].fields){ 
         // check relevance
+        console.log('field relevant',key)
         if(isFieldRelevant(page, key)){
           myFormData.push(FormFields(mForm.pages[page].fields[key], key, updateField, formLang)) 
         }

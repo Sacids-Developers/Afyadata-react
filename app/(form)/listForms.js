@@ -39,7 +39,7 @@ const listForms = () => {
 
       const fileUri = `${directoryUri}/${file}`;
       const fileInfo = await FileSystem.getInfoAsync(fileUri);
-      console.log('ze info',fileInfo)
+      //console.log('ze info',fileInfo)
       const modificationTime = new Date(fileInfo.modificationTime);
       const fileContents = await FileSystem.readAsStringAsync(fileUri);
 
@@ -55,7 +55,7 @@ const listForms = () => {
         "title":  tForm.meta.title,
         "updated_on":  modificationTime,
       }
-      console.log(tmp)
+      //console.log(tmp)
       files.push(tmp);
       //console.log(`File ${file} last modified at:`, modificationTime);
       //console.log(`Contents of ${file}:`, fileContents);

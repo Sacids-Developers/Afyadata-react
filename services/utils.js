@@ -9,11 +9,12 @@ import { PATH } from '../constants/global';
 
 function processVariable(variable, key, fields) {
 
+	//console.log('PROCESS VARIABLE',variable, key, JSON.stringify(fields,null,4))
     if(variable === '.'){
-		console.log(fields[key]['val'])
-		return fields[key]['val'] ? fields[key]['val'] : null
+		//console.log(fields[key]['val'])
+		return fields[key]['val'] ? fields[key]['val'] : false
 	}else{
-		return fields[variable]['val']
+		return fields[variable]['val'] ? fields[variable]['val'] : false
 	}
 }
 
@@ -21,7 +22,7 @@ function processVariable(variable, key, fields) {
 function processFunction(str, func){
 	
 	args = str.substring(func.length+1, str.length-1)
-	console.log(func, args)
+	//console.log('PROCESS FUNCTION',func, args)
 
 	switch(func){
 		case 'regex':
@@ -29,6 +30,7 @@ function processFunction(str, func){
 			// get value of tokens[0] is 
 			break;
 		case 'selected':
+			return compareStrings(args)
 			break;
 		case 'date':
 			return args
@@ -58,6 +60,15 @@ function concatStrings(input) {
   const parts = input.split(',').map(part => part.trim().replace(/^"|"$|^'|'$/g, ''));
   return parts.join('');
 }
+function compareStrings(input){
+	const parts = input.split(',').map(part => part.trim().replace(/^"|"$|^'|'$/g, ''));
+	// get last element of array
+	const ele = parts.pop()
+	const ava = parts.includes(ele)
+	return ava
+
+
+}
 
 function getTodaysDateAsString() {
     const today = new Date();
@@ -82,9 +93,10 @@ export function replaceVariable(input, key, fields) {
 
 export function replaceFunctions(input) {
 
+	//console.log('REPLACE FUNCTION: ',input)
 	const pattern = /(selected|date|today|count-selected|string-length|regex|concat)\((.*?)\)/g;
     const output = input.replace(pattern, (match, variable) => {
-		console.log('patern :', match, variable)
+		//console.log('patern :', match, variable)
         return variable ? processFunction(match, variable) : variable;
     });
 
@@ -96,7 +108,7 @@ export function validate(str, key = "", fields = {}){
 
 	if (typeof str !== 'string') {
 		const result = Boolean(str)
-		console.log('not string',result)
+		//console.log('not string',result)
 		return result
 	}
 
@@ -107,7 +119,7 @@ export function validate(str, key = "", fields = {}){
     console.log("replace function",expression)
     
     const result = parser.evaluate(expression);
-    console.log(result)
+    console.log('validate result',result)
     return result
 }
 
