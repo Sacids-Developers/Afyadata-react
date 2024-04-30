@@ -17,8 +17,8 @@ export const URL = {
     login: BASE_URL + '/api/v1/login',
     form_list: BASE_URL + '/form_list',
     form_submit: BASE_URL + '/form_submit',
-    
+
     messages: BASE_URL + '/chat',
-    news: BASE_URL + '/api/v1/news',
+    news: '/api/v1/news',
   
 };

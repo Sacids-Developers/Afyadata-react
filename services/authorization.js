@@ -12,7 +12,7 @@ const authorization = axios.create({
     // Retrieve the access token
     const accessToken = AsyncStorage.getItem("access_token");
 
-    //TODO: check for key expiring
+    //TODO: check if access token expiring
   
     // Add the access token to the Authorization header
     config.headers.Authorization = `Bearer ${accessToken}`;

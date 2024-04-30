@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { URL } from '../constants/global';
+import authorization from './authorization'; // Import the authorization wrapper
 
 
 export const fetchForms = async () => {
@@ -53,7 +54,11 @@ export const fetchNews = async () => {
 
   const fetchNewsEndpoint = URL.news;
   console.log("fetch news",fetchNewsEndpoint)
-  const response = await axios.get(fetchNewsEndpoint);
+
+  //try call data with token
+  const response = authorization.get(URL.news);
+
+  // response = await axios.get(fetchNewsEndpoint);
   const json = await response.data
   return json;
 }
