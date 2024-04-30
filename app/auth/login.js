@@ -70,10 +70,6 @@ export default function Login() {
                 .then((responseJson) => {
                     setLoading(false);
 
-                    //log response
-                    console.log(responseJson)
-
-                    //If server response message same as Data Matched
                     if (responseJson.error === false) {
                         AsyncStorage.setItem('access_token', responseJson.access);
                         AsyncStorage.setItem('refresh_token', responseJson.refresh);
@@ -82,11 +78,8 @@ export default function Login() {
                         //redirect
                         router.replace('/(tabs)/updates')
                     } else {
-                        //error message
-                        setErrorMsg(responseJson.error_msg);
-
-                        //clear only password
-                        setPassword("");
+                        setErrorMsg(responseJson.error_msg); //error message
+                        setPassword(""); //clear only password
                     }
                 })
                 .catch((error) => {
