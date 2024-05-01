@@ -117,6 +117,17 @@ const newForm = () => {
 
 
 
+  const saveForm = () => {
+
+    const nForm = {...mForm} // shallow copy
+
+    nForm["meta"]["status"] = 'Draft'; // update index
+    nForm["meta"]["updated_on"] = new Date().toISOString();
+    setForm(nForm); // set new json
+    saveFormToFile(instanceID,JSON.stringify(nForm))
+
+  }
+
 
 const goToNextPage = (event) => {
   let isValid = true;
@@ -240,6 +251,7 @@ const isFieldRelevant = (pageNumber, fieldName) => {
   }
 
 const renderPageLinks = () => {
+  
   const prevButton = page > 0 ? (
     <MaterialIcons name="navigate-before" size={36} color={COLORS.fontColor} onPress={goToPreviousPage}
     />
@@ -256,8 +268,8 @@ const renderPageLinks = () => {
   return (
     <View style={styles.page_links}>
       {prevButton}
-      <Pressable onPress={() => submitForm('draft')} style={{padding: 10}} >
-        <Text style={{fontSize:14, fontWeight: 'bold',}}>Save Draft</Text> 
+      <Pressable onPress={() => saveForm()} style={{padding: 10}} >
+        <Text style={{fontSize:14, fontWeight: 'bold',}}>Save </Text> 
       </Pressable>
       {nextButton}
     </View>

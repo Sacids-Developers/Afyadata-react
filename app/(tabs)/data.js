@@ -1,18 +1,18 @@
 
 
-import { View, Text, StyleSheet, ActivityIndicator, Pressable, SafeAreaView,  Dimensions, Touchable, Button, Alert } from 'react-native'
+import { View, Text, StyleSheet, ActivityIndicator, Pressable, SafeAreaView,  Dimensions, Touchable, Button, Alert, TextInput } from 'react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 
 import * as FileSystem from 'expo-file-system';
 
-import { fetchDataAndStore, retrieveStoredData } from '../../services/updates'
 import { Link, router, useRouter } from 'expo-router'
 
 import { Ionicons, AntDesign, MaterialIcons,MaterialCommunityIcons, Entypo} from '@expo/vector-icons';
 import { FAB } from '@rneui/themed';
 import BottomSheet from '@gorhom/bottom-sheet';
 import { useMutation } from '@tanstack/react-query'
+import filter from 'lodash.filter';
 
  
 
@@ -32,14 +32,19 @@ import { HEADER_MAX_HEIGHT, HEADER_MIN_HEIGHT, HEADER_SCROLL_DISTANCE } from '..
 import { deleteFile } from '../../services/files';
 import { submitFormData } from '../../services/api';
 import { saveFormToFile } from '../../services/utils';
-
+import { getFilesInDirectory } from '../../services/data';
 
 const data = () => {
 
-    const [data, setData] = useState({})
+    const [data, setData] = useState([])
+    const [fulldata, setFulldata] = useState([])
+    const [dataStats, setDataStats] = useState({})
     const [isLoading, setLoading] = useState(false)
     const [isError, setError] = useState(false)
     const [selectedItems, setSelectedItems] = useState([]);
+    const [query, setQuery] = useState('');
+    const [filter, setFilter] = useState('');
+
 
 
     // Bottom Sheet
@@ -58,7 +63,7 @@ const data = () => {
   const mutation = useMutation({
     mutationFn: (formData) => { submitFormData(formData) },
     onSuccess: (data) => {
-      // update article view directly via setQueryData
+      // update  view directly via setQueryData
       console.log('success',data)
     },
     onError: (error, variables, context) => {
@@ -66,16 +71,289 @@ const data = () => {
     },
   });
 
-  _getFilesInDirectory = async () => {
-    
+ 
+  const getDataStats = (files, stat) => {
+    let filtered = files.filter(item => item['status'].toLowerCase() === stat);
+    return filtered.length
+  }
+  const handleRefresh = () => {
+    getFilesInDirectory(PATH.form_data,setData,setLoading,setError);
+  };
+
+  const scrollY = useSharedValue(0);
+
+  const onScroll = useAnimatedScrollHandler((event) => {
+    scrollY.value = event.contentOffset.y;
+  });
+
+  const summaryBlockStyle = useAnimatedStyle(() => {
+
+    return {
+      height:   interpolate(scrollY.value,[0,HEADER_MAX_HEIGHT],[HEADER_MAX_HEIGHT,HEADER_MIN_HEIGHT],Extrapolation.CLAMP),
+      //marginBottom: interpolate(scrollY.value,[0,200],[0,HEADER_MIN_HEIGHT],Extrapolation.CLAMP)
+      opacity:  interpolate(scrollY.value,[0, HEADER_SCROLL_DISTANCE / 2, HEADER_SCROLL_DISTANCE],[1, 1, 0],Extrapolation.CLAMP),
+        
+    }
+  });
+
+  const titleBlockStyle = useAnimatedStyle(() => {
+
+    return {
+      opacity:  interpolate(scrollY.value,[0, HEADER_SCROLL_DISTANCE / 2, HEADER_SCROLL_DISTANCE],[0, 1, 1],Extrapolation.CLAMP),     
+    }
+  });
+
+  const sendAllFinalizedForms = () => {
+    return(
+      Alert.alert('From Submission', 'Are you sure you want to submit all forms to the server', [
+        {
+          text: 'Cancel',
+          onPress: () => console.log('Cancel Pressed'),
+          style: 'cancel',
+        },
+        { 
+          text: 'OK', 
+          onPress: () => {
+            let count = 0
+            total_selected = selectedItems.length
+            console.log('total_selected',total_selected)
+            data.forEach((item) => {
+              console.log('sending ....',item.file_name)
+              if(sendFormToServer(item)){
+                console.log('Sending form ',index, item.file_name)
+                count++
+              }
+            });
+            if(count){
+              alert('Sent '+count+' forms to the server')
+            }else{
+              alert('Sent Failed')
+            }
+            handleRefresh()
+          }
+        },
+      ])
+    )
+  }
+  
+  const confirmDeletion = () => {
+    Alert.alert('From Deletion', 'Are you sure you want to delete form(s) on your phone', [
+      {
+        text: 'Cancel',
+        onPress: () => console.log('Cancel Pressed'),
+        style: 'cancel',
+      },
+      { 
+        text: 'OK', 
+        onPress: () => {
+          count   = 0
+          total_selected = selectedItems.length
+          selectedItems.forEach((index) => {
+            fn = data[index].file_name
+            console.log('deleting ....',fn)
+            if(deleteFile(PATH.form_data+fn)){
+              console.log('reload data')
+              count++
+            }
+
+          });
+
+          getFilesInDirectory(PATH.form_data,setData,setLoading,setError);
+          setSelectedItems([])
+          console.log('Delete forms')
+        }
+      },
+    ]);
+  }
+
+  const confirmSubmission = (item) => {
+    Alert.alert('From Submission', 'Are you sure you want to submit the form to the server', [
+      {
+        text: 'Cancel',
+        onPress: () => console.log('Cancel Pressed'),
+        style: 'cancel',
+      },
+      { 
+        text: 'OK', 
+        onPress: () => {
+          if(sendFormToServer(item)){
+            handleRefresh()
+          }
+        }
+      },
+    ]);
+  }
+
+  const sendFormToServer = (item) => {
+    console.log('item',item)
+    // open file from async storage
+    const file_path = PATH.form_data+item.file_name;
+    console.log(file_path)
+    FileSystem.readAsStringAsync(file_path).then(
+      (xForm) =>{
+        let tForm = JSON.parse(xForm)
+        // loop through tform
+        const uuid      = tForm['meta']['uuid']
+        const jform     = {}
+        const formData  = new FormData()
+
+        for(const page in tForm.pages){
+          for(const field_name in tForm.pages[page]['fields']){
+            if(tForm.pages[page]['fields'][field_name]['type'] == "image"){
+              jform[field_name]   = tForm.pages[page]['fields'][field_name]['val']['name']
+              formData.append(field_name, tForm.pages[page]['fields'][field_name]['val'])
+            }else if(Array.isArray(tForm.pages[page]['fields'][field_name]['val'])){
+              //console.log('is array')
+              jform[field_name]   = tForm.pages[page]['fields'][field_name]['val'].join(",")
+            }else{
+              jform[field_name]   = tForm.pages[page]['fields'][field_name]['val']
+            }
+          }      
+        }
+        formData.append('data', JSON.stringify(jform))
+        formData.append('meta', JSON.stringify(tForm.meta))
+        //console.log(JSON.stringify(jform,null,4))
+
+        response = submitFormData(formData).then(
+          (response) => {
+            if(!response){
+              tForm.meta.status = 'sent'
+              saveFormToFile(item.uuid,JSON.stringify(tForm,null,2))
+              return true
+            }
+            return false
+          }
+        )
+      }
+    ).catch(
+      (e) => {
+        console.log(e)
+        return false
+      }
+    )
+
+  }
+  
+  const deSelectItems = () => {
+    setSelectedItems([]);
+  }
+  const selectItems = (item) => {
+    if (selectedItems.includes(item.id)) {
+      const newListItems = selectedItems.filter(
+        listItem => listItem !== item.id,
+      );
+      return setSelectedItems([...newListItems]);
+    }
+    setSelectedItems([...selectedItems, item.id]);
+  };
+
+  const selectAllItems = () => {
+    const allItems = data.map(({ id }) => id);
+    setSelectedItems([...allItems])
+  }
+  
+  const handlePress = (item) => {
+
+    if (selectedItems.length != 0) {
+      return selectItems(item);
+    }
+
+    if(item.status.toUpperCase() == "SENT"){
+      //console.log("IN DATA",item)
+      return router.push({
+        pathname: "../(form)/"+item.file_name,
+        params: {
+          form_fn: item.file_name,
+          title: item.title,
+        }
+      })
+    }else if(item.status.toUpperCase() == "FINALIZED"){
+      return confirmSubmission(item)
+    }else{
+      return router.push({
+        pathname: "../(form)/newForm",
+        params: {
+          form_fn: item.file_name,
+          new_form: 0,
+        }
+      })
+    }
+  }
+
+  const doFilter = (text) => {
+    setFilter(text)
+    deSelectItems()
+    //setData(fulldata)
+    filteredData = fulldata.filter(
+      (item) => item.status.toLowerCase().includes(text.toLowerCase())
+    )
+    //console.log(filteredData)
+    setData(filteredData)
+  }
+  const renderFilterOptions = () => {
+
+    if(selectedItems.length == data.length && selectedItems.length != 0){
+      return (
+        <Pressable style={styles.filter_options_wrp} onPress={() => deSelectItems()} >
+          <Text style={styles.filter_options_text}>Unselect All </Text>
+        </Pressable>
+      )
+    }
+
+    if(selectedItems.length != 0){
+      return (
+        <Pressable style={styles.filter_options_wrp} onPress={() => selectAllItems()} >
+          <Text style={styles.filter_options_text}>Select All Items</Text>
+        </Pressable>
+      )
+    }
+
+    if(filter.toLowerCase() == 'finalized'){   
+      return (
+        <Pressable style={styles.filter_options_wrp} onPress={() => sendAllFinalizedForms()} >
+          <Text style={styles.filter_options_text}>Send All Finalized</Text>
+        </Pressable>
+      )
+    }
+
+    return (
+      <View style={styles.filter_options_wrp} >
+        <TextInput
+          autoCapitalize="none"
+          autoCorrect={false}
+          clearButtonMode="always"
+          onChangeText={(queryText) => {
+            filteredData = data.filter(
+              (item) => item.status.toLowerCase().includes(queryText.toLowerCase())
+            )
+            setData(filteredData)
+          }}
+          placeholder="Search"
+          style={[styles.filter_options_text,{width: '100%'}]}
+        ></TextInput>
+      </View> 
+    )
+  }
+
+  const renderItem = ({ item }) => (
+    <DataItem
+      item={item}
+      onPress={() => handlePress(item)}
+      onLongPress={() => selectItems(item)}
+      isSelected={selectedItems.includes(item.id)}
+    />
+  );
+
+  const getFilesInDirectory = async (dir_path) => {
+  
     setLoading(true)
     setError(false)
     let files = [];
-    let dir = await FileSystem.readDirectoryAsync(PATH.form_data);
+    let dir = await FileSystem.readDirectoryAsync(dir_path);
 
     dir.forEach((val, index) => {
       // read json file
-      path = PATH.form_data+val
+      path = dir_path+val
       // console.log(path)
       // check if path is a directory
       FileSystem.getInfoAsync(path).then(
@@ -114,188 +392,18 @@ const data = () => {
         }
       )  
     });
+
+
     setData(files)
+    setFulldata(files)
     setLoading(false)
+    return files
   }
-
-  const handleRefresh = () => {
-    _getFilesInDirectory();
-  };
-
-  const scrollY = useSharedValue(0);
-
-  const onScroll = useAnimatedScrollHandler((event) => {
-    scrollY.value = event.contentOffset.y;
-  });
-
-  const summaryBlockStyle = useAnimatedStyle(() => {
-
-    return {
-      height:   interpolate(scrollY.value,[0,HEADER_MAX_HEIGHT],[HEADER_MAX_HEIGHT,HEADER_MIN_HEIGHT],Extrapolation.CLAMP),
-      //marginBottom: interpolate(scrollY.value,[0,200],[0,HEADER_MIN_HEIGHT],Extrapolation.CLAMP)
-      opacity:  interpolate(scrollY.value,[0, HEADER_SCROLL_DISTANCE / 2, HEADER_SCROLL_DISTANCE],[1, 1, 0],Extrapolation.CLAMP),
-        
-    }
-  });
-
-  const titleBlockStyle = useAnimatedStyle(() => {
-
-    return {
-      opacity:  interpolate(scrollY.value,[0, HEADER_SCROLL_DISTANCE / 2, HEADER_SCROLL_DISTANCE],[0, 1, 1],Extrapolation.CLAMP),     
-    }
-  });
-
-  
-  const confirmDeletion = () => {
-    Alert.alert('From Deletion', 'Are you sure you want to delete form(s) on your phone', [
-      {
-        text: 'Cancel',
-        onPress: () => console.log('Cancel Pressed'),
-        style: 'cancel',
-      },
-      { 
-        text: 'OK', 
-        onPress: () => {
-          count   = 0
-          total_selected = selectedItems.length
-          selectedItems.forEach((index) => {
-            fn = data[index].file_name
-            console.log('deleting ....',fn)
-            if(deleteFile(PATH.form_data+fn)){
-              console.log('reload data')
-              count++
-            }
-
-          });
-
-          _getFilesInDirectory();
-          setSelectedItems([])
-          console.log('Delete forms')
-        }
-      },
-    ]);
-  }
-
-  const confirmSubmission = (item) => {
-    Alert.alert('From Submission', 'Are you sure you want to submit the form to the server', [
-      {
-        text: 'Cancel',
-        onPress: () => console.log('Cancel Pressed'),
-        style: 'cancel',
-      },
-      { 
-        text: 'OK', 
-        onPress: () => {
-          console.log('Sending Form to Server')
-          console.log(item.file_name)
-          sendFormToServer(item)
-        }
-      },
-    ]);
-  }
-
-  const sendFormToServer = (item) => {
-    //console.log('item',item)
-    // open file from async storage
-    const file_path = PATH.form_data+item.file_name;
-    FileSystem.readAsStringAsync(file_path).then(
-      (xForm) =>{
-        let tForm = JSON.parse(xForm)
-        // loop through tform
-        const uuid      = tForm['meta']['uuid']
-        const jform     = {}
-        const formData  = new FormData()
-
-        for(const page in tForm.pages){
-          for(const field_name in tForm.pages[page]['fields']){
-            if(tForm.pages[page]['fields'][field_name]['type'] == "image"){
-              jform[field_name]   = tForm.pages[page]['fields'][field_name]['val']['name']
-              formData.append(field_name, tForm.pages[page]['fields'][field_name]['val'])
-            }else if(Array.isArray(tForm.pages[page]['fields'][field_name]['val'])){
-              //console.log('is array')
-              jform[field_name]   = tForm.pages[page]['fields'][field_name]['val'].join(",")
-            }else{
-              jform[field_name]   = tForm.pages[page]['fields'][field_name]['val']
-            }
-          }      
-        }
-        formData.append('data', JSON.stringify(jform))
-        formData.append('meta', JSON.stringify(tForm.meta))
-        //console.log(JSON.stringify(jform,null,4))
-
-        response = submitFormData(formData).then(
-          (response) => {
-            if(!response){
-              tForm.meta.status = 'sent'
-              saveFormToFile(item.uuid,JSON.stringify(tForm,null,2))
-              handleRefresh()
-              return true
-            }
-            return false
-          }
-        )
-
-
-        
-      }
-    ).catch(
-      (e) => {console.log(e)}
-    )
-
-  }
-  
-  const deSelectItems = () => {
-    setSelectedItems([]);
-  }
-  const selectItems = (item) => {
-    if (selectedItems.includes(item.id)) {
-      const newListItems = selectedItems.filter(
-        listItem => listItem !== item.id,
-      );
-      return setSelectedItems([...newListItems]);
-    }
-    setSelectedItems([...selectedItems, item.id]);
-  };
-  
-  const handlePress = (item) => {
-
-    if (selectedItems.length != 0) {
-      return selectItems(item);
-    }
-
-    if(item.status.toUpperCase() == "SENT"){
-      //console.log("IN DATA",item)
-      return router.push({
-        pathname: "../(form)/"+item.file_name,
-        params: {
-          form_fn: item.file_name,
-          title: item.title,
-        }
-      })
-    }else if(item.status.toUpperCase() == "FINALIZED"){
-      return confirmSubmission(item)
-    }else{
-      return router.push({
-        pathname: "../(form)/newForm",
-        params: {
-          form_fn: item.file_name,
-          new_form: 0,
-        }
-      })
-    }
-  }
-
-  const renderItem = ({ item }) => (
-    <DataItem
-      item={item}
-      onPress={() => handlePress(item)}
-      onLongPress={() => selectItems(item)}
-      isSelected={selectedItems.includes(item.id)}
-    />
-  );
 
   useEffect(() => {
-    _getFilesInDirectory();
+
+    getFilesInDirectory(PATH.form_data)
+
   }, []);
 
 
@@ -320,13 +428,33 @@ const data = () => {
             <Animated.View style={[styles.header, summaryBlockStyle ]}>
               <AntDesign name="database" size={50} color={COLORS.headerTextColor}  />
               <Text style={{fontSize: 30, color: COLORS.headerTextColor, paddingTop: 8,}}>Reported Data</Text>
+              <View style={{flexDirection: "row", gap: 10, width: '85%', paddingTop:20}}>
+
+                <Pressable style={[styles.filter_wrp,(filter == '') ? {backgroundColor: COLORS.hightlightColor} : {backgroundColor: "transparent"}]} onPress={() => doFilter('')}>
+                  <Text style={[styles.filter_text,{fontSize: 20}]}>{fulldata.length}</Text>
+                  <Text style={[styles.filter_text,{fontSize: 12}]}>All</Text>
+                </Pressable>
+                <Pressable style={[styles.filter_wrp,(filter == 'draft') ? {backgroundColor: COLORS.hightlightColor} : {backgroundColor: "transparent"}]} onPress={() => doFilter('draft')}>
+                  <Text style={[styles.filter_text,{fontSize: 20}]}>{getDataStats(fulldata,'draft')}</Text>
+                  <Text style={[styles.filter_text,{fontSize: 12}]}>Draft </Text>
+                </Pressable>
+                <Pressable style={[styles.filter_wrp,(filter == 'finalized') ? {backgroundColor: COLORS.hightlightColor} : {backgroundColor: "transparent"}]} onPress={() => doFilter('finalized')}>
+                  <Text style={[styles.filter_text,{fontSize: 20}]}>{getDataStats(fulldata,'finalized')}</Text>
+                  <Text style={[styles.filter_text,{fontSize: 12}]}>Finalized </Text>
+                </Pressable>
+                <Pressable style={[styles.filter_wrp,(filter == 'sent') ? {backgroundColor: COLORS.hightlightColor} : {backgroundColor: "transparent"}]} onPress={() => doFilter('sent')}>
+                  <Text style={[styles.filter_text,{fontSize: 20}]}>{getDataStats(fulldata,'sent')}</Text>
+                  <Text style={[styles.filter_text,{fontSize: 12}]}>Sent</Text>
+                </Pressable>
+              </View>
+              
+              {renderFilterOptions()}
             </Animated.View>
 
             <View style={styles.tab_header} >
               <Animated.Text style={[styles.title, titleBlockStyle]}> My Data </Animated.Text>
               <View style={{flexDirection: "row"}}>
-                <Ionicons name="filter" size={20} color={COLORS.headerTextColor}/>
-                <Ionicons name="search-outline" size={22} color={COLORS.headerTextColor}  style={{paddingHorizontal: 14}} />
+                <Ionicons name="search-outline" size={22} color={COLORS.headerTextColor}  style={{paddingHorizontal: 14}} onPress={() => router.push('../(form)/searchForms')}/>                 
                 <Entypo name="dots-three-vertical" size={16} color={COLORS.headerTextColor} style={{paddingTop: 3}} onPress={() => handleBSOpenPress()} />
               </View>
             </View>
@@ -341,7 +469,7 @@ const data = () => {
               removeClippedSubviews
               contentContainerStyle={styles.list_container}
               style={styles.list}
-              onRefresh={_getFilesInDirectory}
+              onRefresh={() => getFilesInDirectory(PATH.form_data,setData,setLoading,setError)}
               refreshing={isLoading}
               
             />
@@ -472,12 +600,41 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     paddingHorizontal: 15,
-    paddingVertical: 10,
+    paddingVertical: 2,
     color: COLORS.headerTextColor,
     verticalAlign: "middle",
     backgroundColor: COLORS.headerBgColor,
   },
 
+  filter_wrp:{
+    borderColor: COLORS.headerTextColor,
+    borderRadius: 5,
+    padding: 3,
+    borderWidth: 1,
+    flex: 1,
+  },
+
+  filter_text:{
+    color: COLORS.headerTextColor,
+    textAlign: 'center', 
+  },
+
+  filter_options_wrp:{
+    backgroundColor: 'transparent',
+    padding: 2,
+    marginVertical: 10,
+    borderRadius: 5,
+    borderWidth:1,
+    borderColor: COLORS.headerTextColor,
+    width: '85%',
+  },
+
+  filter_options_text:{ 
+    color: COLORS.headerTextColor, 
+    fontSize: 18, 
+    padding:5,
+    textAlign: 'center', 
+  },
 
   list:{
     flex: 1,

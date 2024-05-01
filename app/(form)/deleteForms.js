@@ -1,31 +1,71 @@
-import { SafeAreaView, Text, View } from 'react-native'
-import React, { Component, useEffect, useState } from 'react'
-import { Stack } from 'expo-router'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { useQuery } from '@tanstack/react-query';
-import { getFilesInDirectory } from '../../services/files';
-import { FlatList } from 'react-native-gesture-handler';
-import { ActivityIndicator } from 'react-native';
+
+import * as FileSystem from 'expo-file-system';
+
+import { Link, Stack, router, useNavigation } from 'expo-router'
+
+import { AntDesign} from '@expo/vector-icons';
+import { FAB } from '@rneui/themed';
+import { SafeAreaView, ActivityIndicator, StyleSheet, Text, View, FlatList } from 'react-native'
+
+
+import {COLORS} from "../../constants/colors"
 import { PATH } from '../../constants/global';
-import { FAB, CheckBox } from '@rneui/themed';
+import DataItem from '../../components/DataItem';
+import { getFilesInDirectory } from '../../services/data';
 
 
 
 const deleteForms = () => {   
 
+    const [data, setData] = useState([])
+    const [dataStats, setDataStats] = useState({})
+    const [isLoading, setLoading] = useState(false)
+    const [isError, setError] = useState(false)
+    const [selectedItems, setSelectedItems] = useState([]);
 
-    const [formList, setFormList] = useState([])
-    const [filesChosen, setFilesChosen] = useState(false)
 
-    const {isPending, isError, data, error} = useQuery({ queryKey: ['listFormDefns3'], queryFn: () => getFilesInDirectory(PATH.form_defn) })
+
+
+    const renderItem = ({ item }) => (
+      <DataItem
+        item={item}
+        onPress={() => handlePress(item)}
+        onLongPress={() => selectItems(item)}
+        isSelected={selectedItems.includes(item.id)}
+      />
+    );
+
+    const handleRefresh = () => {
+      getFilesInDirectory(PATH.form_data,setData,setLoading,setError);
+    };
+    const selectItems = (item) => {
+      if (selectedItems.includes(item.id)) {
+        const newListItems = selectedItems.filter(
+          listItem => listItem !== item.id,
+        );
+        return setSelectedItems([...newListItems]);
+      }
+      setSelectedItems([...selectedItems, item.id]);
+    };
     
+    const handlePress = (item) => {
+  
+      if (selectedItems.length != 0) {
+        return selectItems(item);
+      }
+
+      // delete item
+  
+    }
 
     useEffect( () =>{
-        files = getFilesInDirectory(PATH.form_defn)
+      getFilesInDirectory(PATH.form_defn,setData,setLoading,setError);
     })
 
 
-    if (isPending) {
+    if (isLoading) {
         return (
             <SafeAreaView style={{ flex: 1,}}>
                 <ActivityIndicator  size="large" color="#0000ff" />
@@ -73,17 +113,77 @@ const deleteForms = () => {
     
     return (
       <SafeAreaView>
-        <Stack.Screen options={{title: 'Delete Forms'}} />
-        <FlatList
-            data={data}
-            scrollEventThrottle={16}
-            renderItem={({item}) => (<Item item={item} />)}
-            keyExtractor={item => item.file_name}
         
+        <Stack.Screen 
+          options={{title: 'Delete Forms'}} 
         />
+        <FlatList
+          data={data}
+          scrollEventThrottle={16}
+          renderItem={(item) => renderItem(item)}
+          extraData={selectedItems}
+          keyExtractor={(item) => item.file_name}
+          removeClippedSubviews
+          contentContainerStyle={styles.list_container}
+          style={styles.list}
+          onRefresh={() => getFilesInDirectory(PATH.form_data,setData,setLoading,setError)}
+          refreshing={isLoading}
+        />
+
+        <FAB
+          size="large"
+          title=""
+          color={COLORS.fontColor}
+          icon={
+            (
+              selectedItems.length ? 
+              <AntDesign name="delete" size={24} color={COLORS.headerTextColor} /> :  
+              <AntDesign name="form" size={24} color={COLORS.headerTextColor} />  
+            )
+          }
+          placement='right'
+          onPress={() => {
+            selectedItems.length ? 
+            confirmDeletion() :
+            router.push(href='../(form)/listForms')}
+          }
+        />
+
       </SafeAreaView>
     )
   
 }
 
 export default deleteForms
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+
+
+  list:{
+    flex: 1,
+    margin: 0,
+    padding: 0,
+    backgroundColor: COLORS.backgroundColor,
+    borderRadius: 20,
+  },
+
+  list_container:{
+    marginTop: 15,
+    backgroundColor: "white",
+  },
+  
+  title: {
+    color: COLORS.fontColor,
+    fontSize: 18,
+    paddingTop: 3,
+  },
+
+
+
+
+
+
+});

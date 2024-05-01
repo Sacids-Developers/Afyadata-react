@@ -4,7 +4,6 @@ import { View, Text, StyleSheet, ActivityIndicator, Pressable, SafeAreaView,  Di
 import React, { useEffect, useState } from 'react'
 
 
-import { fetchDataAndStore, retrieveStoredData } from '../../services/updates'
 import { Link } from 'expo-router'
 
 import { Ionicons, Entypo } from '@expo/vector-icons';
@@ -36,8 +35,6 @@ const tasks = () => {
     language = 'en'
     
     useEffect(() => {
-      fetchDataAndStore(language, setData, setLoading); // Fetch data when the app is online
-      retrieveStoredData(setData, setLoading); // Retrieve stored data when the app is offline
     }, []);
 
     const handleRefresh = () => {

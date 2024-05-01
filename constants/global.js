@@ -19,6 +19,6 @@ export const URL = {
     form_submit: BASE_URL + '/form_submit',
 
     messages: BASE_URL + '/chat',
-    news: '/api/v1/news',
+    news: BASE_URL + '/api/v1/news',
   
 };

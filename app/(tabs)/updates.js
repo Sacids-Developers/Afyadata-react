@@ -4,7 +4,6 @@ import { View, Text, StyleSheet, ActivityIndicator, Pressable, SafeAreaView,  Di
 import React, { useEffect, useState } from 'react'
 
 
-import { fetchDataAndStore, retrieveStoredData } from '../../services/updates'
 import { fetchNews } from '../../services/api';
 
 import { Ionicons, Octicons, Entypo, MaterialCommunityIcons } from '@expo/vector-icons';

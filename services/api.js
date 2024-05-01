@@ -58,7 +58,7 @@ export const fetchNews = async () => {
   //try call data with token
   const response = authorization.get(URL.news);
 
-  // response = await axios.get(fetchNewsEndpoint);
+  //const response = await axios.get(fetchNewsEndpoint);
   const json = await response.data
   return json;
 }

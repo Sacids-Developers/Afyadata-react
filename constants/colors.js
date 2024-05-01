@@ -20,6 +20,7 @@ export const COLORS = {
 
   primaryColor: priColor,
   secondaryColor: "#faedef",
+  hightlightColor: "#701d26",
 
   tabBackgroundColor: "white",
 

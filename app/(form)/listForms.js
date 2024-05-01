@@ -37,15 +37,15 @@ const listForms = () => {
     let index = 0
     for(const file of dir){
 
+      index = index+1
       const fileUri = `${directoryUri}/${file}`;
       const fileInfo = await FileSystem.getInfoAsync(fileUri);
       //console.log('ze info',fileInfo)
       const modificationTime = new Date(fileInfo.modificationTime);
       const fileContents = await FileSystem.readAsStringAsync(fileUri);
-
       let tForm = JSON.parse(fileContents)
       let tmp = {
-        "id": index++,
+        "id": index,
         "file_name": file,
         "form_name": tForm.meta.name,
         "formID": tForm.meta.id,
@@ -55,45 +55,9 @@ const listForms = () => {
         "title":  tForm.meta.title,
         "updated_on":  modificationTime,
       }
-      //console.log(tmp)
       files.push(tmp);
-      //console.log(`File ${file} last modified at:`, modificationTime);
-      //console.log(`Contents of ${file}:`, fileContents);
-
     }
 
-    setData(files)
-    setLoading(false)
-
-    return 
-    dir.forEach((val, index) => {
-      // read json file
-
-      FileSystem.readAsStringAsync(PATH.form_defn+val).then(
-        (xForm) =>{
-          let tForm = JSON.parse(xForm)
-          let tmp = {
-            "id": index,
-            "file_name": val,
-            "form_name": tForm.meta.name,
-            "formID": tForm.meta.id,
-            "uuid": val,
-            "version":  tForm.meta.version,
-            "status":  tForm.meta.title,
-            "title":  tForm.meta.title,
-          }
-          console.log(tmp)
-          files.push(tmp);
-        }
-      ).catch(
-        (e) => {
-          console.log(e)
-        }
-        
-      )  
-    
-    });
-    console.log(files)
     setData(files)
     setLoading(false)
   }
