@@ -19,6 +19,7 @@ const InstanceData = ({ route }) => {
   const { form_file_name } = route.params;
   
   const renderFormFields = (field, index) => {
+
       if(field.type === 'group'){
           return (
               <View style={styles.group_wrapper} key={index}>
@@ -53,8 +54,10 @@ const InstanceData = ({ route }) => {
             </View>
           )
       }
+      else if(field.type === 'calculate'){
+        return null
+      }
       else{
-        console.log(field,'field')
           return (
               <View style={styles.item_wrapper} key={index}>
                   <Text style={styles.item_label}>{field['label::Default']}</Text>
@@ -85,8 +88,12 @@ const InstanceData = ({ route }) => {
   for(let i = 0; i < totalPages; i++){
 
       myFormData.push(renderFormFields(mForm.pages[i], i))
-      for (const key in mForm.pages[i].fields){
-          myFormData.push(renderFormFields(mForm.pages[i].fields[key],key+'_'+i))
+      for (const count in mForm.pages[i].fields){
+          let fields_arr  = mForm.pages[i].fields[count]
+          for(key in fields_arr){
+              let currentField = fields_arr[key]
+              myFormData.push(renderFormFields(currentField,key+'_'+i))
+          }
       }
   }
 
@@ -123,7 +130,7 @@ const styles = StyleSheet.create({
   },
 
   item_value: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "bold",
   },
   
