@@ -370,11 +370,12 @@ const AddAnotherPageButton = (title) => {
   if(page < totalPages){
 
     if(isPageRelevant(page)){
-      //console.log('is page relevant')
+      console.log('is page relevant')
       myFormData.push(FormFields(mForm.pages[page],page,0,formLang))
+      console.log('form data', mForm.pages[page].fields[repeatNo])
       for (const key in mForm.pages[page].fields[repeatNo]){ 
         // check relevance
-        //console.log('field relevant',key)
+        console.log('field relevant',key)
         if(isFieldRelevant(page, key)){
           myFormData.push(FormFields(mForm.pages[page].fields[repeatNo][key], key, updateField, formLang)) 
         }

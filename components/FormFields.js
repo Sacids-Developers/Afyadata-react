@@ -375,15 +375,16 @@ export default function FormFields(props, index, update, formLang) {
   }
 
   else {
+    return null
 
-    return (
-      <View style={styles.item_wrp} key={index}>
-        <Text style={styles.item_label}>{props['label'+formLang]}</Text>
-        {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
-        <TextInput style={styles.input} placeholder={props['label'+formLang]} name={props.name} value={props.val} onChangeText={(e) => { update(index, e); }} />
-        {props.error && <Text style={styles.item_error}>{ props['constraint_message'+formLang]}</Text>}
-      </View>
-    )
+  //   return (
+  //     <View style={styles.item_wrp} key={index}>
+  //       <Text style={styles.item_label}>{props['label'+formLang]}</Text>
+  //       {props['hint'+formLang] != null && <Text style={styles.item_hint}>{props['hint'+formLang]}</Text>}
+  //       <TextInput style={styles.input} placeholder={props['label'+formLang]} name={props.name} value={props.val} onChangeText={(e) => { update(index, e); }} />
+  //       {props.error && <Text style={styles.item_error}>{ props['constraint_message'+formLang]}</Text>}
+  //     </View>
+  //   )
 
   }
 };
