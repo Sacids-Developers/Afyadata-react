@@ -9,7 +9,8 @@ export const PATH = {
   
 };
 
-const BASE_URL  = 'http://41.73.194.139:8040';
+//const BASE_URL  = 'http://41.73.194.139:8040';
+const BASE_URL  = 'http://192.168.35.174:8000';
 
 export const URL = {
     base_url: BASE_URL,

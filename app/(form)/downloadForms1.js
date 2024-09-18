@@ -1,6 +1,6 @@
 
 
-import { View, Text, StyleSheet, ActivityIndicator, Pressable, SafeAreaView,  Dimensions, FlatList, Alert, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, ActivityIndicator, Pressable, SafeAreaView,  Dimensions, FlatList, Alert } from 'react-native'
 import React, { useEffect, useLayoutEffect, useState } from 'react'
 import axios from 'axios';
 
@@ -17,8 +17,6 @@ import {COLORS} from "../../constants/colors"
 import {PATH, URL} from "../../constants/global"
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchForms } from '../../services/api';
-import gStyles from '../../components/gStyles';
-import ExpoStatusBar from 'expo-status-bar/build/ExpoStatusBar';
 const downloadForms = () => {
 
   const [downloadProgress, setDownloadProgres] = useState(0)
@@ -80,7 +78,6 @@ const downloadForms = () => {
 
 
   const handleCheckboxChange = (item) => {
-    console.log(item)
     const isChecked = checkedForms.includes(item);
     if (isChecked) {
       setCheckedForms(checkedForms.filter(i => i !== item));
@@ -90,25 +87,6 @@ const downloadForms = () => {
   };
 
   const Item = ({item}) => (
-
-    <TouchableOpacity
-      onPress={() => handleCheckboxChange(item)}
-      style={[styles.item, checkedForms.includes(item) && styles.selectedItem]}
-    >
-    <View style={{flexDirection: "row",alignItems: "center"}}>
-      <View style={[styles.icon, checkedForms.includes(item) && {backgroundColor: COLORS.primaryColor}]}>
-        {checkedForms.includes(item) ? <AntDesign name="check" size={24} color="white" /> :  <Text style={{fontSize: 18, color: "white"}}>{item.name[0].toUpperCase()}</Text>}
-      </View>
-      <View style={{paddingLeft: 0, flexDirection: "column",gap:2}}>
-        <Text style={{fontSize: 17,color: "#000", fontWeight: "500" }}>{item.name} </Text>
-        <Text style={{fontSize: 15, color: "#999",}}>Last Update: { item.updated_on == undefined ? 'N/A' : moment(item.updated_on).format('Do MMMM YY, H:mm')}</Text>
-      </View>
-    </View>
-  </TouchableOpacity>
-
-  );
-
-  const Item1 = ({item}) => (
 
     <View style={styles.item}>
       <CheckBox
@@ -123,38 +101,6 @@ const downloadForms = () => {
 
   );
 
-  const renderHeader = () => {
-    
-    if(checkedForms.length != 0){
-
-      return (
-        <View style={[styles.pageHeader,{backgroundColor: COLORS.primaryColor}]}>
-           <View style={{flexDirection:"row", gap: 15, alignItems: "center"}}>
-            <AntDesign name="arrowleft" size={22} color={COLORS.headerTextColor} onPress={() => {router.back()}}/>
-            <Text style={{fontSize: 22, color: COLORS.headerTextColor, fontWeight: 400}} >{checkedForms.length}</Text>
-            {(checkedForms.length != data.length) ? 
-                <Text style={{ borderWidth: 1, color: COLORS.headerTextColor, borderColor: COLORS.headerTextColor, borderRadius: 5, paddingVertical: 4, paddingHorizontal:15}} onPress={() => selectAllItems()}>Select All</Text>
-                : 
-                <Text style={{ borderWidth: 1, color: COLORS.headerTextColor, borderColor: COLORS.headerTextColor, borderRadius: 5, paddingVertical: 4, paddingHorizontal:15}} onPress={() => setCheckedForms([])}>Un Select</Text>
-            }
-          
-          </View>
-          <View style={{flexDirection: "row",alignItems: "center", gap: 15}}>
-            <AntDesign name="download" size={22} color={COLORS.headerTextColor} onPress={() => do_download()} />          
-          </View>
-        </View>
-      )        
-    }
-    return (
-      <View style={[styles.pageHeader,{backgroundColor: COLORS.primaryColor}]}>
-        <AntDesign name="arrowleft" size={22} color={COLORS.headerTextColor} onPress={() => {router.back()}}/>
-        <Text style={{fontSize: 22, color: COLORS.headerTextColor, fontWeight: 400}}>Download Forms</Text>
-        <View style={{flexDirection: "row", gap: 15, alignItems: "center"}}>
-        </View>
-      </View>
-    )
-    
-  }
 
 
   const {isLoading, isError, data, error} = useQuery({ 
@@ -179,14 +125,18 @@ const downloadForms = () => {
 
 
   return (
-    <SafeAreaView style={[gStyles.AndroidSafeArea,]}>
-      <ExpoStatusBar />
+    <SafeAreaView style={{ flex: 1,}}>
       <Stack.Screen options={
           {
-            headerShown: false,
+            title: 'Download forms',
+            headerTintColor: COLORS.headerTextColor,
+            headerStyle: {
+              backgroundColor: COLORS.headerBgColor,
+              fontWeight: "bold",
+            },
           }
       } /> 
-      {renderHeader()}
+               
       <FlatList
         data={data}
         scrollEventThrottle={16}
@@ -243,10 +193,11 @@ const styles = StyleSheet.create({
     margin: 0,
     padding: 0,
     backgroundColor: COLORS.backgroundColor,
+    borderRadius: 20,
   },
 
   list_container:{
-    marginTop: 15,
+    paddingVertical: 10,
     backgroundColor: "white",
   },
   
@@ -256,42 +207,5 @@ const styles = StyleSheet.create({
     paddingTop: 3,
   },
 
-  item: {
-    paddingVertical: 15,
-    paddingHorizontal: 10,
-    borderBottomColor: COLORS.backgroundColor,
-  },
-  item_title: {
-    fontSize: 16,
-  },
-  item_text: {
-    fontSize: 12,
-  },
-  selectedItem: {
-    backgroundColor: COLORS.secondaryColor,
-    borderRadius: 0,
-  },
-  icon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 15,
-    color:"white",
-    backgroundColor: "#999",
-    justifyContent: 'center', // Center vertically
-    alignItems: 'center', // Center horizontally
-  },
-
-
-  pageHeader:{
-    paddingHorizontal: 15, 
-    paddingVertical:15, 
-    flexDirection:"row",
-    justifyContent:"space-between", 
-    alignItems: "center", 
-    backgroundColor: COLORS.slate,
-    borderBottomColor: COLORS.slate,
-    borderBottomWidth: 1,
-  },
 
 });

@@ -1,8 +1,7 @@
 
 
-import { View, Text, StyleSheet, ActivityIndicator, Pressable, SafeAreaView, StatusBar, Dimensions, Touchable, Button, Alert, TextInput, FlatList, Platform } from 'react-native'
+import { View, Text, StyleSheet, ActivityIndicator, Pressable, SafeAreaView,  Dimensions, Touchable, Button, Alert, TextInput } from 'react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-
 
 
 import * as FileSystem from 'expo-file-system';
@@ -10,19 +9,21 @@ import * as FileSystem from 'expo-file-system';
 import { Link, router, useRouter } from 'expo-router'
 
 import { Ionicons, AntDesign, MaterialIcons,MaterialCommunityIcons, Entypo} from '@expo/vector-icons';
-import { Badge, FAB } from '@rneui/themed';
+import { FAB } from '@rneui/themed';
 import BottomSheet from '@gorhom/bottom-sheet';
 import { useMutation } from '@tanstack/react-query'
-
-//import filter from 'lodash.filter';
+import filter from 'lodash.filter';
 
  
+
 
 import Animated, {
   Extrapolation,
   interpolate,
+  useAnimatedRef,
   useAnimatedScrollHandler,
   useAnimatedStyle,
+  useDerivedValue,
   useSharedValue,
 } from "react-native-reanimated";
 
@@ -35,11 +36,6 @@ import { deleteFile } from '../../services/files';
 import { submitFormData } from '../../services/api';
 import { saveFormToFile } from '../../services/utils';
 import { getFilesInDirectory } from '../../services/data';
-import { set } from 'lodash';
-import gStyles from '../../components/gStyles';
-import { setStatusBarBackgroundColor } from 'expo-status-bar';
-import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 const data = () => {
 
@@ -51,9 +47,6 @@ const data = () => {
     const [selectedItems, setSelectedItems] = useState([]);
     const [query, setQuery] = useState('');
     const [filter, setFilter] = useState('');
-    const [section, setSection] = useState('data')
-
-    const [showSearch, setShowSearch] = useState(false)
 
 
 
@@ -63,7 +56,7 @@ const data = () => {
     const finalized_bottomSheetRef = useRef(null);
     const snapPoints = useMemo(() => ['50%', '75%'], []);
     const handleSheetChanges = useCallback((index) => {
-      //console.log('handleSheetChanges', index);
+      console.log('handleSheetChanges', index);
     }, []);
     const handleBSOpenPress = () => {
       bottomSheetRef.current?.snapToIndex(0)
@@ -241,7 +234,6 @@ const data = () => {
         return false
       }
     )
-
   }
   
   const deSelectItems = () => {
@@ -255,10 +247,8 @@ const data = () => {
       return setSelectedItems([...newListItems]);
     }
     setSelectedItems([...selectedItems, item.id]);
-    console.log('selected',selectedItems,item.id)
   };
 
-  
   const selectAllItems = () => {
     const allItems = data.map(({ id }) => id);
     setSelectedItems([...allItems])
@@ -279,29 +269,17 @@ const data = () => {
           title: item.title,
         }
       })
-    }
-    
-    if(item.status.toUpperCase() == "FINALIZED"){
+    }else if(item.status.toUpperCase() == "FINALIZED"){
       return confirmSubmission(item)
-    }
-    
-    if(item.status.toUpperCase() == 'BLANK'){
+    }else{
       return router.push({
         pathname: "../(form)/newForm",
         params: {
           form_fn: item.file_name,
-          new_form: 1,
+          new_form: 0,
         }
       })
     }
-
-    return router.push({
-      pathname: "../(form)/newForm",
-      params: {
-        form_fn: item.file_name,
-        new_form: 1,
-      }
-    })
   }
 
   const doFilter = (text) => {
@@ -347,8 +325,7 @@ const data = () => {
           autoCorrect={false}
           clearButtonMode="always"
           onChangeText={(queryText) => {
-            setData(fulldata)
-            filteredData = fulldata.filter(
+            filteredData = data.filter(
               (item) => item.status.toLowerCase().includes(queryText.toLowerCase())
             )
             setData(filteredData)
@@ -369,124 +346,6 @@ const data = () => {
     />
   );
 
-  const renderFilters = () => {
-    return (
-      <>
-        <View style={{flexDirection:"row",gap:10,paddingTop:10,paddingHorizontal:10}}>
-          <Pressable style={[styles.filter_wrp,(filter == '') && styles.filter_wrp_on]} onPress={() => doFilter('')}>
-            <Text style={styles.filter_text}>{fulldata.length}</Text>
-            <Text style={styles.filter_text}>All</Text>
-          </Pressable>
-          <Pressable style={[styles.filter_wrp,(filter == 'draft') && styles.filter_wrp_on]} onPress={() => doFilter('draft')}>
-            <Text style={styles.filter_text}>{getDataStats(fulldata,'draft')} Draft</Text>
-          </Pressable>
-          <Pressable style={[styles.filter_wrp,(filter == 'finalized') && styles.filter_wrp_on]} onPress={() => doFilter('finalized')}>
-            <Text style={styles.filter_text}>{getDataStats(fulldata,'finalized')} Finalized</Text>
-          </Pressable>
-          <Pressable style={[styles.filter_wrp,(filter == 'sent') && styles.filter_wrp_on]} onPress={() => doFilter('sent')}>
-            <Text style={styles.filter_text}>{getDataStats(fulldata,'sent')} Sent</Text>
-          </Pressable>
-        </View>
-      </>
-    )
-  }
-
-  const renderSearch = () => {
-    if(showSearch){
-      return (
-        <View style={[styles.pageHeader,]}>
-          <View style={{flexDirection:"row", gap: 15, alignItems: "center"}}>
-            <AntDesign name="arrowleft" size={22} color="black" onPress={() => { (section == 'data') ? getDataFiles() : getBlankFiles()}}/>
-            <View style={{borderColor: "#888", borderWidth: 1, borderRadius: 10, flex:1, paddingVertical:3, paddingHorizontal: 5, flexDirection: "row", alignItems: "center"}}>
-              <TextInput
-                autoCapitalize="none"
-                autoCorrect={false}
-                multiline={false}
-                value={query}
-                onChangeText={(queryText) => {
-                  setQuery(queryText)
-                  filteredData = fulldata.filter(
-                    (item) => item.title.toLowerCase().includes(queryText.toLowerCase())
-                  )
-                  setData(filteredData)
-                  //console.log('filter',data.length,queryText)
-                }}
-                placeholder="Search..."
-                style={{fontSize: 18, paddingVertical: 2, paddingHorizontal:8, flex:1}}
-                
-              ></TextInput>
-              {(data.length != fulldata.length) && <AntDesign name="close" size={18} color="black" onPress={() => {setQuery(''); setData(fulldata)}}/>}
-            </View>
-            <AntDesign name="delete" size={22} color="black" onPress={() => confirmDeletion()} /> 
-          </View>
-        </View>
-      )        
-    }
-    if(selectedItems.length != 0){
-
-      return (
-        <View style={[styles.pageHeader]}>
-           <View style={{flexDirection:"row", gap: 15, alignItems: "center"}}>
-            <AntDesign name="arrowleft" size={22} color="black" onPress={
-              () => {
-                setData(fulldata)
-                setQuery('')
-                setSelectedItems([])
-                setShowSearch(false)
-              }
-            }/>
-            <Text style={{fontSize: 22, color: COLORS.primaryColor, fontWeight: 400}} >{selectedItems.length}</Text>
-            {(selectedItems.length != data.length) ? 
-                <Text style={{ borderWidth: 1, borderColor: "black", borderRadius: 5, paddingVertical: 4, paddingHorizontal:15}} onPress={() => selectAllItems()}>Select All</Text>
-                : 
-                <Text style={{ borderWidth: 1, borderColor: "black", borderRadius: 5, paddingVertical: 4, paddingHorizontal:15}} onPress={() => setSelectedItems([])}>Un Select</Text>
-            }
-          
-          </View>
-          <View style={{flexDirection: "row",alignItems: "center", gap: 15}}>
-            { section == 'data' && <MaterialCommunityIcons name="pin" size={22} color="black" />}
-            { section == 'data' && <MaterialCommunityIcons name="archive-arrow-down-outline" size={22} color="black" />}
-            <AntDesign name="delete" size={22} color="black" onPress={() => confirmDeletion()} />          
-            <Entypo name="dots-three-vertical" size={20} color="#000" onPress={() => handleBSOpenPress()} />
-            </View>
-        </View>
-      )        
-    }
-    if(section == 'blank'){
-      return (
-        <View style={[styles.pageHeader,]}>
-          <View style={{flexDirection:"row", gap: 15, alignItems: "center"}}>
-            <AntDesign name="arrowleft" size={22} color="black" onPress={
-              () => {
-                getDataFiles()
-              }
-            }/>
-            <Text style={{fontSize: 22, color: COLORS.primaryColor, fontWeight: 400}}>MLFData</Text>
-          </View>
-          <View style={{flexDirection: "row", gap: 15, alignItems: "center"}}>
-            <MaterialIcons name="format-align-justify" size={24} color="black"  onPress={() => getDataFiles()} />
-            <AntDesign name="download" size={22} color="#000"  onPress={() => router.push(href='../(form)/downloadForms') } /> 
-            <Ionicons name="search-outline" size={22} color="#000" onPress={() => setShowSearch(true)}/>                 
-            <Entypo name="dots-three-vertical" size={20} color="#000" onPress={() => handleBSOpenPress()} />
-          </View>
-        </View>
-      )
-    }
-
-    return (
-      <View style={[styles.pageHeader,{backgroundColor: COLORS.primaryColor}]}>
-        <Text style={{fontSize: 22, color: COLORS.headerTextColor, fontWeight: 400}}>MLFData</Text>
-        <View style={{flexDirection: "row", gap: 15, alignItems: "center"}}>
-          <AntDesign name="form" size={22} color={COLORS.headerTextColor} onPress={() => getBlankFiles()} />
-          <AntDesign name="download" size={22} color={COLORS.headerTextColor} onPress={() => router.push(href='../(form)/downloadForms') }/> 
-          <Ionicons name="search-outline" size={22} color={COLORS.headerTextColor} onPress={() => setShowSearch(true)}/>                 
-          <Entypo name="dots-three-vertical" size={20} color={COLORS.headerTextColor} onPress={() => handleBSOpenPress()} />
-        </View>
-      </View>
-    )
-    
-  }
-
   const getFilesInDirectory = async (dir_path) => {
   
     setLoading(true)
@@ -502,24 +361,21 @@ const data = () => {
       FileSystem.getInfoAsync(path).then(
         (fileInfo) => {
           if(!fileInfo.isDirectory){
-            const modificationTime = new Date(fileInfo.modificationTime);
-            FileSystem.readAsStringAsync(dir_path+val).then(
+            FileSystem.readAsStringAsync(PATH.form_data+val).then(
               (xForm) =>{
                 let tForm = JSON.parse(xForm)
                 //console.log(val)
-
                 let tmp = {
                   "id": index,
                   "file_name": val,
                   "form_name": tForm.meta.title,
                   "formID": tForm.meta.form_id,
                   "version":  tForm.meta.version,
-                  "status":  ('status' in tForm.meta) ? tForm.meta.status : tForm.meta.title,
-                  "uuid":  ('uuid' in tForm.meta) ? tForm.meta.uuid : val,
+                  "status":  tForm.meta.status,
+                  "uuid":  tForm.meta.uuid,
                   "title":  tForm.meta.title,
-                  "updated_on":  modificationTime,
+                  "updated_on":  tForm.meta.updated_on,
                   "created_on":  tForm.meta.created_on,
-
                 }
                 files.push(tmp);
               }
@@ -541,31 +397,15 @@ const data = () => {
 
 
     setData(files)
-
     setFulldata(files)
     setLoading(false)
     return files
   }
 
-  const getDataFiles = () => {
-    setSection('data')
-    setQuery('')
-    setSelectedItems([])
-    setShowSearch(false)
-    getFilesInDirectory(PATH.form_data)
-  }
-
-  const getBlankFiles = () => {
-    setSection('blank')
-    setQuery('')
-    setSelectedItems([])
-    setShowSearch(false)
-    getFilesInDirectory(PATH.form_defn)
-  }
-
   useEffect(() => {
-    getDataFiles()
-    //getFilesInDirectory(PATH.form_data)
+
+    getFilesInDirectory(PATH.form_data)
+
   }, []);
 
 
@@ -584,26 +424,55 @@ const data = () => {
   }
 
   return (
-    
-    <GestureHandlerRootView style={{flex: 1}}>
-      <SafeAreaView style={[gStyles.AndroidSafeArea, section != 'data' && {backgroundColor: COLORS.slate}]}>   
-        {section == 'data' ? <ExpoStatusBar style="light" /> :  <ExpoStatusBar style="dark" />  }
+      <SafeAreaView style={{ flex: 1,}}>         
         <View style={{ flex: 1, backgroundColor: COLORS.backgroundColor}}>
           
-            {renderSearch()}
-            {section == 'data' && renderFilters()}
+            <Animated.View style={[styles.header, summaryBlockStyle ]}>
+              <Text style={{fontSize: 30, color: COLORS.headerTextColor, paddingTop: 40,}}>Reported Data</Text>
+              <View style={{flexDirection: "row", gap: 10, width: '85%', paddingTop:20}}>
 
-            <FlatList
+                <Pressable style={[styles.filter_wrp,(filter == '') ? {backgroundColor: COLORS.hightlightColor} : {backgroundColor: "transparent"}]} onPress={() => doFilter('')}>
+                  <Text style={[styles.filter_text,{fontSize: 20}]}>{fulldata.length}</Text>
+                  <Text style={[styles.filter_text,{fontSize: 12}]}>All</Text>
+                </Pressable>
+                <Pressable style={[styles.filter_wrp,(filter == 'draft') ? {backgroundColor: COLORS.hightlightColor} : {backgroundColor: "transparent"}]} onPress={() => doFilter('draft')}>
+                  <Text style={[styles.filter_text,{fontSize: 20}]}>{getDataStats(fulldata,'draft')}</Text>
+                  <Text style={[styles.filter_text,{fontSize: 12}]}>Draft </Text>
+                </Pressable>
+                <Pressable style={[styles.filter_wrp,(filter == 'finalized') ? {backgroundColor: COLORS.hightlightColor} : {backgroundColor: "transparent"}]} onPress={() => doFilter('finalized')}>
+                  <Text style={[styles.filter_text,{fontSize: 20}]}>{getDataStats(fulldata,'finalized')}</Text>
+                  <Text style={[styles.filter_text,{fontSize: 12}]}>Finalized </Text>
+                </Pressable>
+                <Pressable style={[styles.filter_wrp,(filter == 'sent') ? {backgroundColor: COLORS.hightlightColor} : {backgroundColor: "transparent"}]} onPress={() => doFilter('sent')}>
+                  <Text style={[styles.filter_text,{fontSize: 20}]}>{getDataStats(fulldata,'sent')}</Text>
+                  <Text style={[styles.filter_text,{fontSize: 12}]}>Sent</Text>
+                </Pressable>
+              </View>
+              
+              {renderFilterOptions()}
+            </Animated.View>
+
+            <View style={styles.tab_header} >
+              <Animated.Text style={[styles.title, titleBlockStyle]}> My Data </Animated.Text>
+              <View style={{flexDirection: "row"}}>
+                <Ionicons name="search-outline" size={22} color={COLORS.headerTextColor}  style={{paddingHorizontal: 14}} onPress={() => router.push('../(form)/searchForms')}/>                 
+                <Entypo name="dots-three-vertical" size={16} color={COLORS.headerTextColor} style={{paddingTop: 3}} onPress={() => handleBSOpenPress()} />
+              </View>
+            </View>
+            
+            <Animated.FlatList
               data={data}
               scrollEventThrottle={16}
               renderItem={(item) => renderItem(item)}
               extraData={selectedItems}
               keyExtractor={(item) => item.file_name}
+              onScroll={onScroll}
               removeClippedSubviews
               contentContainerStyle={styles.list_container}
               style={styles.list}
               onRefresh={() => getFilesInDirectory(PATH.form_data,setData,setLoading,setError)}
               refreshing={isLoading}
+              
             />
 
             
@@ -622,7 +491,7 @@ const data = () => {
               onPress={() => {
                 selectedItems.length ? 
                 confirmDeletion() :
-                getBlankFiles()}
+                router.push(href='../(form)/listForms')}
               }
             />
 
@@ -708,10 +577,8 @@ const data = () => {
             </BottomSheet>
         </View>
       </SafeAreaView>
-    </GestureHandlerRootView>
     )
 }
-
 
 
 export default data
@@ -720,27 +587,37 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  header: {
+    height: HEADER_MAX_HEIGHT,
+    margin: 0,
+    fontSize: 50,
+    backgroundColor: COLORS.headerBgColor,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 
+
+  tab_header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 15,
+    paddingVertical: 2,
+    color: COLORS.headerTextColor,
+    verticalAlign: "middle",
+    backgroundColor: COLORS.headerBgColor,
+  },
 
   filter_wrp:{
-    borderRadius: 20,
-    paddingHorizontal:10,
-    paddingVertical:7,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: COLORS.slate,
-    gap: 2,
-  },
-  filter_wrp_on: {
-    backgroundColor: COLORS.secondaryColor,
-    color: "black",
+    borderColor: COLORS.headerTextColor,
+    borderRadius: 5,
+    padding: 3,
+    borderWidth: 1,
+    flex: 1,
   },
 
   filter_text:{
-    color: "#666",
-    textAlign: 'center',
-    fontSize: 14,  
+    color: COLORS.headerTextColor,
+    textAlign: 'center', 
   },
 
   filter_options_wrp:{
@@ -804,23 +681,6 @@ const styles = StyleSheet.create({
   },
 
 
-  pageHeader:{
-    paddingHorizontal: 15, 
-    paddingVertical:15, 
-    flexDirection:"row",
-    justifyContent:"space-between", 
-    alignItems: "center", 
-    backgroundColor: COLORS.slate,
-    borderBottomColor: COLORS.slate,
-    borderBottomWidth: 1,
-  },
-
-
-  AndroidSafeArea: {
-    flex: 1,
-    backgroundColor: "white",
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0
-  }
 
 
 

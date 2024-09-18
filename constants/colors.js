@@ -19,8 +19,10 @@ export const COLORS = {
   headerTextColor: "#fcfafa",
 
   primaryColor: priColor,
-  secondaryColor: "#faedef",
+  secondaryColor: "#fecdd3",
   hightlightColor: "#701d26",
+
+  slate: "#e2e8f0",
 
   tabBackgroundColor: "white",
 

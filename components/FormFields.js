@@ -9,6 +9,7 @@ import * as Location from 'expo-location'
 import { COLORS } from '../constants/colors';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
+import Moment from 'moment';
 
 import { Permissions } from 'expo';
 
@@ -93,7 +94,7 @@ export default function FormFields(props, index, update, formLang) {
   }
 
   const onChange = (event, selectedDate) => {
-    update(index, selectedDate.toDateString());
+    update(index, selectedDate);
   };
 
   //returning view
@@ -107,6 +108,8 @@ export default function FormFields(props, index, update, formLang) {
       </View>
     )
   }
+
+
   else if (props.type === 'integer') {
 
     return (
@@ -175,6 +178,7 @@ export default function FormFields(props, index, update, formLang) {
   else if (props.type === 'date') {
 
     //console.log('date string', props.val, typeof(props.val))
+    //console.log(props)
     return (
       <View style={styles.item_wrp} key={index}>
         <Text style={styles.item_label}>{props['label'+formLang]}</Text>
@@ -255,8 +259,6 @@ export default function FormFields(props, index, update, formLang) {
     )
   }
 
-
-
   else if (props.type === 'range') {
 
     // get paramenters
@@ -279,6 +281,7 @@ export default function FormFields(props, index, update, formLang) {
 
   }
 
+  
 
   else if (props.type === 'select_one') {
 
@@ -407,7 +410,7 @@ const styles = StyleSheet.create({
   item_error: {
     fontSize: 14,
     fontStyle: "italic",
-    color: "red",
+    color: COLORS.primaryColor,
   },
   item_text:{
     fontSize: 14,
@@ -458,11 +461,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, 
     borderRadius: 5,
     flex: 1,
-    backgroundColor: COLORS.primaryColor,
+    backgroundColor: COLORS.slate,
   },
 
   button_text:{
-    color: "#fff",
+    color: "#000",
     justifyContent: "center",
     alignItems: "center",
     textAlign: "center",

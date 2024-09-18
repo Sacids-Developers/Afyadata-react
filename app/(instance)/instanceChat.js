@@ -57,7 +57,7 @@ const InstanceChat = ({ route }) => {
       messages={messages}
       onSend={messages => onSend(messages)}
       user={{
-        _id: 2,
+        _id: 5,
       }}
     />
   )

@@ -1,16 +1,16 @@
 
-import { Text, View, TextInput, Button, TouchableHighlight, StyleSheet, Pressable, SafeAreaView } from 'react-native'
+import { Text, View, TextInput, Button, TouchableHighlight, StyleSheet, Pressable, SafeAreaView, Platform } from 'react-native'
 import React, { useEffect, useLayoutEffect, useState, useCallback, useMemo, useRef} from 'react'
 import { useForm } from "react-hook-form";
 import FormFields from '../../components/FormFields';
-import { ScrollView } from 'react-native-gesture-handler';
+import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
 import { Link, Stack, router } from 'expo-router';
 import * as Crypto from 'expo-crypto';
 import * as FileSystem from 'expo-file-system';
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 
-import { MaterialCommunityIcons, MaterialIcons, Entypo, Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons, MaterialIcons, Entypo, AntDesign, Ionicons } from '@expo/vector-icons';
 
 import { useLocalSearchParams, useNavigation } from 'expo-router'
 import { PATH } from '../../constants/global';
@@ -20,6 +20,7 @@ import BottomSheet from '@gorhom/bottom-sheet';
 
 import {COLORS} from "../../constants/colors"
 import { replaceVariable, replaceFunctions, saveFormToFile, validate } from '../../services/utils';
+import { StatusBar } from 'expo-status-bar';
 
 
 const newForm = () => {
@@ -31,22 +32,23 @@ const newForm = () => {
   const [instanceID, setInstanceID] = useState(0)
   const [formData, setFormData] = useState([])
   const [page, setPage]   = useState(0)
+  const [repeatNo, setRepeatNo]   = useState(0)
   const [totalPages, setTotalPages] = useState(0)
   const [formLang, setFormLang] = useState('')
   const [langOptions, setLangOptions] = useState([])
 
 
-    // Bottom Sheet
-    //const bottomSheetRef = useRef();
-    const bottomSheetRef = useRef(null);
-    const finalized_bottomSheetRef = useRef(null);
-    const snapPoints = useMemo(() => ['25%', '50%'], []);
-    const handleSheetChanges = useCallback((index) => {
-      //console.log('handleSheetChanges', index);
-    }, []);
-    const handleBSOpenPress = () => {
-      bottomSheetRef.current?.snapToIndex(0)
-    }
+  // Bottom Sheet
+  //const bottomSheetRef = useRef();
+  const bottomSheetRef = useRef(null);
+  const finalized_bottomSheetRef = useRef(null);
+  const snapPoints = useMemo(() => ['25%', '50%'], []);
+  const handleSheetChanges = useCallback((index) => {
+    //console.log('handleSheetChanges', index);
+  }, []);
+  const handleBSOpenPress = () => {
+    bottomSheetRef.current?.snapToIndex(0)
+  }
 
   const navigation = useNavigation();
 
@@ -56,9 +58,8 @@ const newForm = () => {
   };
   const updateField = (fieldIndex, newValue, columnName = 'val') => {
     const updatedForm = { ...mForm };
-    console.log('UPDATE FIELD',fieldIndex,newValue,columnName)
-    updatedForm.pages[page].fields[fieldIndex][columnName] = newValue;
-    //updatedForm.pages[page].fields[fieldIndex]['error'] = false;
+    //console.log('UPDATE FIELD',fieldIndex,newValue,columnName)
+    updatedForm.pages[page].fields[repeatNo][fieldIndex][columnName] = newValue;
     setForm(updatedForm);
   };
 
@@ -129,26 +130,24 @@ const newForm = () => {
   }
 
 
-const goToNextPage = (event) => {
-  let isValid = true;
-  const currentPageFields = mForm.pages[page].fields;
-
+const verifyPage = (currentPageFields) => {
+  isValid = true
+  //console.log('current page fields',repeatNo, currentPageFields)
   for (const fieldKey in currentPageFields) {
+    //console.log('fieldkye',fieldKey)
     if (!isFieldRelevant(page, fieldKey)) continue;
+    if (fieldKey,'fieldkey',currentPageFields[fieldKey]['type'] == 'date') continue;
 
     const constraint = currentPageFields[fieldKey]['constraint'];
     const isRequired = currentPageFields[fieldKey]['required'];
 
-    //console.log('GO TO NEXT PAGE',fieldKey,constraint,isRequired)
-    //if ((constraint == null || constraint === '') && (isRequired === null || isRequired === '' || isRequired === 'no')) continue;
-    
     const fieldValue = currentPageFields[fieldKey]['val'];
-    console.log('FIELD FAVA',fieldKey,fieldValue)
+    //console.log('FIELD FAVA',fieldKey,fieldValue)
 
     if(isRequired != null && isRequired.toLowerCase() === 'yes'){
 
       if (fieldValue == null || fieldValue === '') {
-        console.log('IS REQUIRED',fieldKey,fieldValue)
+        //console.log('IS REQUIRED',fieldKey,fieldValue)
         isValid = false;
         updateField(fieldKey, true, 'error');
         continue
@@ -158,13 +157,47 @@ const goToNextPage = (event) => {
     }
     
     if (!(constraint === null || constraint === '')){
-      console.log('IS CONSTRAINT',fieldKey,fieldValue, constraint)
+      //console.log('IS CONSTRAINT',fieldKey,fieldValue, constraint)
       const isFieldValid = validate(constraint, fieldKey, currentPageFields);
       updateField(fieldKey, !isFieldValid, 'error');
       isValid = isFieldValid && isValid;
     }
   } 
-    
+
+  return isValid
+}
+const addAnotherPage = () => {
+  
+  let isValid = true;
+  const currentPageFields = mForm.pages[page].fields[repeatNo];
+
+  isValid = verifyPage(currentPageFields);
+
+  if (isValid) {
+    // shallow copy current page
+    const newPageFields = {...currentPageFields};
+
+    console.log('before',JSON.stringify(newPageFields, null, 4))
+    // empty value fields in current page
+    for(const fieldKey in newPageFields){
+      newPageFields[fieldKey]['val'] = ''
+    }
+    console.log('after',JSON.stringify(newPageFields, null, 4))
+
+    // add new page
+    const updatedForm = { ...mForm };
+    updatedForm.pages[page]['fields'].push(newPageFields);
+    setRepeatNo((prev) => prev + 1);
+    setForm(updatedForm);
+  
+  }
+}
+const goToNextPage = (event) => {
+  let isValid = true;
+  const currentPageFields = mForm.pages[page].fields[repeatNo];
+
+  isValid = verifyPage(currentPageFields);
+
   if (isValid) {
     for (let nextPageNum = page + 1; nextPageNum <= totalPages; nextPageNum++) {
 
@@ -174,6 +207,7 @@ const goToNextPage = (event) => {
         setPage(nextPageNum);
         break;
       }
+
       if (isPageRelevant(nextPageNum)) {
         setPage(nextPageNum);
         break;
@@ -197,19 +231,21 @@ const goToNextPage = (event) => {
 
   const isPageRelevant = (pageNumber) => {
     const relevantExpression = mForm.pages[pageNumber].relevant;
-
     //console.log('IS PAGE RELEVANT',relevantExpression,pageNumber,JSON.stringify(mForm.pages[pageNumber],null,4))
-
     if (relevantExpression === null || relevantExpression === '' || relevantExpression === undefined) {
       //updatePageRelevance(pageNumber, true);
       return true;
     }
-
-
     const isPageRelevantBasedOnFields = validate(relevantExpression, "", getSetFields(pageNumber));
     //updatePageRelevance(pageNumber, !isPageRelevantBasedOnFields);
     return isPageRelevantBasedOnFields;
   };
+
+  const isPageRepeat = (pageNumber) => {
+    return mForm.pages[pageNumber].repeat;
+  }
+
+
 
   const updateFieldRelevance = (pageNumber, fieldName) => {
     const { fields } = mForm.pages[pageNumber];
@@ -226,8 +262,14 @@ const goToNextPage = (event) => {
   };
 
 const isFieldRelevant = (pageNumber, fieldName) => {
+
+  
   const { fields } = mForm.pages[pageNumber];
-  const fieldRelevance = fields[fieldName].relevant;
+  
+  //console.log('kasa',fields[repeatNo],fieldName)
+  if(fields[repeatNo][fieldName].type == 'date') return true;
+
+  const fieldRelevance = fields[repeatNo][fieldName].relevant;
 
   if (fieldRelevance === null || fieldRelevance === '' || fieldRelevance === undefined) {
     return true;
@@ -242,9 +284,12 @@ const isFieldRelevant = (pageNumber, fieldName) => {
   const getSetFields = (currentPage) => {
     fields  = {}
     for(i = 0; i <= currentPage; i++){
-      for (let key in mForm.pages[i].fields) {
-        fields[key] = mForm.pages[i].fields[key];
-      }
+      const numbers = Object.keys(mForm.pages[i].fields);
+      numbers.forEach(number => {
+        for (let key in mForm.pages[i].fields[number]) {
+          fields[key] = mForm.pages[i].fields[number][key];
+        }
+      });
     }
     //console.log(fields)
     return fields
@@ -268,14 +313,28 @@ const renderPageLinks = () => {
   return (
     <View style={styles.page_links}>
       {prevButton}
-      <Pressable onPress={() => saveForm()} style={{padding: 10}} >
-        <Text style={{fontSize:14, fontWeight: 'bold',}}>Save </Text> 
-      </Pressable>
       {nextButton}
     </View>
   );
 };
 
+const HeaderRightActions = () => {
+  return (
+    <View style={{flexDirection: 'row', gap: 15}}>
+      <AntDesign name="save" size={26} color="black"  style={{paddingTop: 2}} onPress={() => saveForm()} />
+      <Entypo name="dots-three-vertical" size={22} color="black" style={{paddingTop: 2}} onPress={() => handleBSOpenPress()} />
+    </View>
+  )
+}
+
+const AddAnotherPageButton = (title) => {
+  return (
+      <TouchableOpacity style={styles.AddAnotherPageButton} onPress={() => addAnotherPage()} key={page.toString()+repeatNo.toString()}> 
+        <Entypo name="add-to-list" size={24} color="black" />
+        <Text>Add Another {title} </Text>
+      </TouchableOpacity>
+  )
+}
   useEffect(() => {
     
     const file_path = ( new_form === "1" ? PATH.form_defn+form_fn : PATH.form_data+form_fn );
@@ -294,7 +353,7 @@ const renderPageLinks = () => {
         setInstanceID(tForm['meta']['uuid'])
         setForm(tForm)
         setTotalPages(tForm.pages.length)
-        if (tForm['meta']['default_language'] in tForm['languages']){
+        if (tForm['languages'].includes(tForm['meta']['default_language'])){
           setFormLang('::'+tForm['meta']['default_language'])
         }else{
           setFormLang('::Default')
@@ -311,14 +370,18 @@ const renderPageLinks = () => {
   if(page < totalPages){
 
     if(isPageRelevant(page)){
-      console.log('is page relevant')
+      //console.log('is page relevant')
       myFormData.push(FormFields(mForm.pages[page],page,0,formLang))
-      for (const key in mForm.pages[page].fields){ 
+      for (const key in mForm.pages[page].fields[repeatNo]){ 
         // check relevance
-        console.log('field relevant',key)
+        //console.log('field relevant',key)
         if(isFieldRelevant(page, key)){
-          myFormData.push(FormFields(mForm.pages[page].fields[key], key, updateField, formLang)) 
+          myFormData.push(FormFields(mForm.pages[page].fields[repeatNo][key], key, updateField, formLang)) 
         }
+      }
+
+      if(isPageRepeat(page)){
+        myFormData.push(AddAnotherPageButton(mForm.pages[page].label))
       }
     }
   }
@@ -335,15 +398,16 @@ const renderPageLinks = () => {
 
   return (
     <GestureHandlerRootView style={{flex: 1}}>
-        <SafeAreaView style={{flex: 1}}>
+      
+        <SafeAreaView style={styles.AndroidSafeArea}>
           <Stack.Screen options={
             {
               title: 'Fill Form',
-              headerTintColor: COLORS.headerTextColor,
+              headerTintColor: "black",
               headerStyle: {
-                backgroundColor: COLORS.headerBgColor,
+                backgroundColor: COLORS.slate,
               },
-              headerRight: () => <Entypo name="dots-three-vertical" size={16} color={COLORS.headerTextColor} style={{paddingTop: 3}} onPress={() => handleBSOpenPress()} />,
+              headerRight: () => HeaderRightActions(),
             }
           } />
           { 
@@ -420,6 +484,7 @@ const renderPageLinks = () => {
 
 }
 
+
 export default newForm
 
 
@@ -477,7 +542,26 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     borderTopColor: COLORS.headerBgColor,
     borderTopWidth: 1,
-  }
+  },
+
+  
+  AndroidSafeArea: {
+    flex: 1,
+    backgroundColor: "white",
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0
+  },
+
+  AddAnotherPageButton: {
+    marginTop: 10, 
+    borderColor: 'black', 
+    borderWidth: 1, 
+    padding: 10, 
+    borderRadius: 5, 
+    flexDirection: 'row', 
+    gap: 15, 
+    alignItems: 'center', 
+    alignSelf: 'start'
+  },
 
 
 })

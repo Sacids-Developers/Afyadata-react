@@ -52,7 +52,7 @@
         }
       ],
       [
-        "expo-build-properties", 
+        "expo-build-properties",
         {
           "android": {
             "usesCleartextTraffic": true
@@ -68,7 +68,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "ccafad5b-f0a0-461e-9964-03ca650859b1"
+        "projectId": "c94b32a3-f8f0-4d98-8b5e-ec46160464be"
       }
     }
   }

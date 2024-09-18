@@ -38,9 +38,9 @@ export default function index() {
 
   //check for token if is null
   if (token !== null) {
-    return <Redirect href="/(tabs)/updates" />
+    return <Redirect href="/(tabs)/data" />
   } else {
-    return <Redirect href="/(tabs)/updates" />
+    return <Redirect href="/(tabs)/data" />
     //return <Redirect href="/auth/login" />
   }
 }

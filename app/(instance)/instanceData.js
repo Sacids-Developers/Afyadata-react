@@ -22,7 +22,7 @@ const InstanceData = ({ route }) => {
       if(field.type === 'group'){
           return (
               <View style={styles.group_wrapper} key={index}>
-                  <Text style={styles.group_label}>{field['label::'+formLang]}</Text>
+                  <Text style={styles.group_label}>{field['label::Default']}</Text>
               </View>
           )
       }else if(field.type === 'image'){
@@ -54,9 +54,10 @@ const InstanceData = ({ route }) => {
           )
       }
       else{
+        console.log(field,'field')
           return (
               <View style={styles.item_wrapper} key={index}>
-                  <Text style={styles.item_label}>{field['label::'+formLang]}</Text>
+                  <Text style={styles.item_label}>{field['label::Default']}</Text>
                   <Text style={styles.item_value}>{field['val']}</Text>
               </View>
           )

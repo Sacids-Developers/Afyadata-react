@@ -3,6 +3,7 @@ var parser = new Parser();
 
 import * as FileSystem from 'expo-file-system';
 import { PATH } from '../constants/global';
+import moment from 'moment';
 
 //let str = '.  >= today()'
 //let str = "if(${name} > 10.51, . < 18.39) and (string-length(.) > 5 or date('2015-08-01') > today())"
@@ -11,7 +12,10 @@ function processVariable(variable, key, fields) {
 
 	//console.log('PROCESS VARIABLE',variable, key, JSON.stringify(fields,null,4))
     if(variable === '.'){
-		//console.log(fields[key]['val'])
+		//console.log(fields[key]['type'])
+		if(fields[key]['type'] == 'date'){
+			return fields[key]['val'] ? "'"+moment(fields[key]['val']).format('YYYY-MM-DD')+"'" : false
+		}
 		return fields[key]['val'] ? fields[key]['val'] : false
 	}else{
 		return fields[variable]['val'] ? fields[variable]['val'] : false
@@ -30,6 +34,7 @@ function processFunction(str, func){
 			// get value of tokens[0] is 
 			break;
 		case 'selected':
+			//console.log('selected',args)
 			return compareStrings(args)
 			break;
 		case 'date':
@@ -61,6 +66,7 @@ function concatStrings(input) {
   return parts.join('');
 }
 function compareStrings(input){
+	//console.log('compare strings',input)
 	const parts = input.split(',').map(part => part.trim().replace(/^"|"$|^'|'$/g, ''));
 	// get last element of array
 	const ele = parts.pop()
@@ -71,11 +77,7 @@ function compareStrings(input){
 }
 
 function getTodaysDateAsString() {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+	return moment().format('YYYY-MM-DD')
 }
 
 export function replaceVariable(input, key, fields) {
@@ -106,6 +108,7 @@ export function replaceFunctions(input) {
 
 export function validate(str, key = "", fields = {}){
 
+
 	if (typeof str !== 'string') {
 		const result = Boolean(str)
 		//console.log('not string',result)
@@ -113,13 +116,13 @@ export function validate(str, key = "", fields = {}){
 	}
 
     const processedString = replaceVariable(str, key, fields);
-    console.log("replace variable",processedString); // Output: This is a VARIABLE example
+    //console.log("replace variable",processedString); // Output: This is a VARIABLE example
     
     const expression	= replaceFunctions(processedString)
-    console.log("replace function",expression)
+    //console.log("replace function",expression)
     
     const result = parser.evaluate(expression);
-    console.log('validate result',result)
+    //console.log('validate result',result)
     return result
 }
 
